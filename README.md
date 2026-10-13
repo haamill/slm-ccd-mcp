@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-**2026-10-13：书面设计待用户审阅，尚未实现服务。**
+**2026-10-13：书面设计已获用户同意，实施计划待审阅和执行方式选择；尚未实现服务。**
 
 已完成：
 
@@ -12,8 +12,9 @@
 - 确认局域网客户端类型及首版范围，用户已同意会话方案。
 - 将当前 SLM2 默认相对居中偏移更新为 **(+10,+61)**；保留旧值来源用于追溯。
 - 建立项目核心文档和书面设计。
+- 用户批准书面设计，完成分阶段实施计划与自审。
 
-后续阶段：书面设计审阅 → 实施计划及审阅 → 模拟设备与 MCP 协议验证 → 当前设备联调 → 另一台电脑局域网验收。
+后续阶段：实施计划审阅及执行方式选择 → 实现 / 模拟设备与 MCP 协议验证 → 当前设备联调 → 另一台电脑局域网验收。
 
 ## 首版规划
 
@@ -57,8 +58,10 @@ slm-ccd-mcp/
 ├── REPORT.md
 └── docs/
     └── superpowers/
-        └── specs/
-            └── 2026-10-13-slm-ccd-mcp-design.md
+        ├── specs/
+        │   └── 2026-10-13-slm-ccd-mcp-design.md
+        └── plans/
+            └── 2026-10-13-slm-ccd-mcp-implementation.md
 ```
 
 设计中的 `src/`、`tests/`、`config/`、`scripts/`、`runtime/` 等为后续计划目录，当前未创建。
@@ -75,6 +78,7 @@ slm-ccd-mcp/
 ## 文档
 
 - [书面设计](docs/superpowers/specs/2026-10-13-slm-ccd-mcp-design.md)
+- [实施计划](docs/superpowers/plans/2026-10-13-slm-ccd-mcp-implementation.md)
 - [操作日志](LOG.md)
 - [项目报告](REPORT.md)
 - [开发指令](AGENTS.md)

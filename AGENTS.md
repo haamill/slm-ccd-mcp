@@ -12,7 +12,7 @@
 
 - 开发前检查本文件、README.md、LOG.md、REPORT.md 及最新设计 / 计划。
 - 新项目先使用 Superpowers 头脑风暴梳理目标、约束、方案和风险，再进入搭建 / 实现。
-- 当前处于设计文档审阅阶段：用户已同意会话方案，尚未审阅书面设计及实施计划。
+- 用户已于 2026-10-13 审阅并同意书面设计；实施计划已生成并完成自审，计划审阅和执行方式选择尚未完成。
 - 按对应阶段完成设计、计划和用户审阅；用户后续明确指令优先，不自行增加审批要求。
 - 不使用其他项目的既有环境路径作为本机已验证路径；解释器、依赖及 DLL 位数需实际核验。
 - 代码编辑优先使用 apply_patch；验证使用有意义的模拟设备测试、协议测试及分阶段设备联调。
@@ -51,5 +51,6 @@
 ## 资料入口
 
 - 设计：`docs/superpowers/specs/2026-10-13-slm-ccd-mcp-design.md`。
+- 计划：`docs/superpowers/plans/2026-10-13-slm-ccd-mcp-implementation.md`。
 - 历史实验：`C:/Syncthing/Python/EccentricityHolography`，仅作为来源。
 - SDK：`D:/ExpSoftware/HDSLM_SDK`、`D:/ExpSoftware/toupcamsdk.20260908`。
