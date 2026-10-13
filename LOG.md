@@ -146,3 +146,11 @@
 
 - 全套59通过/1权限跳过，联合预检、顺序、ID去重、版本、恢复基图、partial失败和响应性通过。
 - Task7已只读核验安装的MCP2.3.0真实接口；将构建认证ASGI和真实SDK client调用链，不用自造协议。
+
+- Task7首次集成测试发现bare dict注解不生成structuredContent；通过安装SDK源码和in-process Client定位，改用明确dict[str,Any]输出schema。pytest async fixture跨任务退出AnyIO cancel scope，改由单一后台任务持有完整lifespan；生产ASGI生命周期不改。
+
+### Task7结果 / Task8运行前
+
+- 全套66通过/1权限跳过：真实MCP Client完成上传/投屏参数/曝光/采图/inline PNG/认证RAW下载hash核对，legacy握手通过。
+- 客户端取消后操作在线程内完成；重复operation_id不重新采图。未认证和错误Host/Origin被拒绝。
+- Task8准备CLI、启动与客户端模板、真实回环网络smoke及设备只读探测。投屏/曝光现场联调保留用户指定图像与曝光步骤。
