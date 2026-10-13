@@ -4,7 +4,7 @@
 
 ## 已验证的代码路径
 
-- 71项测试通过，1项Windows symlink权限跳过（截至Task8首次验证）。
+- 83项测试通过，2项Windows文件symlink权限跳过（独立审查修复后）；目录junction攻击测试已在Windows实际通过。
 - 真实MCP Python Client连接模拟ASGI，完成上传、精确投屏参数、CCD设置、采图、PNG和认证RAW下载hash核对。
 - SDK fake验证SLM一次枚举 / 同线程、同SN绑定、相机范围 / 读回 / 恢复及新帧选择。
 - 并发同ID只执行一次，网络取消后仍可取结果，状态查询不被采图锁阻塞。
@@ -25,7 +25,9 @@ smoke通过标准网络MCP上传1000×1000 native10图、加载(+10,+61)、设�
 
 ## 现场设备验收
 
-今日只读枚举已发现SLM2候选和单色CCD，保存runtime/probe.json。ToupView / MagicHolo仍在运行，需要用户说明是否可关闭，以及指定真实SLM2图和曝光或要求保留当前设置。
+用户允许关闭ToupView / MagicHolo，两者正常退出。当前probe出现两个同SN的SLM，保存runtime/probe.json，初始probe归档runtime/probe-initial.json；已请求物理SLM2对应关系，未向SLM提交。
+
+真实CCD已通过正式hardware网关的TCP MCP采到一张全幅暗帧：5312×4592、uint16容器、12有效位。保持2000µs曝光（测试期间AE关闭），丢弃3张新帧后保存，RAW认证下载SHA256相同。断开时原AE/曝光/增益及RAW选项恢复，全部读回通过。证据runtime/hardware-dark-verification.json及runtime/captures/5a26259e-d2c4-4d76-b9aa-cf60021901ee/；帧均值16.065/4095，激光未开，不能证明光栅/衍射行为。
 
 硬件smoke需要全部显式参数：
 

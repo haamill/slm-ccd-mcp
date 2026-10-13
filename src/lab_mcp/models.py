@@ -63,7 +63,7 @@ class GratingSpec(Model):
 class LoadRequest(Model):
     role: SLMRole
     source: str
-    bit_depth: Literal[8, 10] = 10
+    bit_depth: Literal[8, 10] | None = None
     placement: Literal['centered', 'panel'] = 'centered'
     offset_xy: tuple[StrictInt, StrictInt] | None = None
     background: Annotated[StrictInt, Field(ge=0, le=1023)] | None = None

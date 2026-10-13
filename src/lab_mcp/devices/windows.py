@@ -65,12 +65,34 @@ def inspect_projection_window(hwnd,expected_rect):
     return {'alive':False,'hung':False,'unobscured':False,'checked_monotonic_ns':time.monotonic_ns()}
 
 
-def monitor_rectangles():
+def monitor_topology():
+    """Physical rectangles with Windows monitor interface identities, all active displays."""
     library=user32(); result=[]
+    class MonitorInfo(ctypes.Structure):
+        _fields_=[('cbSize',wintypes.DWORD),('rcMonitor',wintypes.RECT),('rcWork',wintypes.RECT),
+            ('dwFlags',wintypes.DWORD),('szDevice',wintypes.WCHAR*32)]
+    class DisplayDevice(ctypes.Structure):
+        _fields_=[('cb',wintypes.DWORD),('DeviceName',wintypes.WCHAR*32),('DeviceString',wintypes.WCHAR*128),
+            ('StateFlags',wintypes.DWORD),('DeviceID',wintypes.WCHAR*128),('DeviceKey',wintypes.WCHAR*128)]
+    library.GetMonitorInfoW.argtypes=[wintypes.HANDLE,ctypes.POINTER(MonitorInfo)]
+    library.EnumDisplayDevicesW.argtypes=[wintypes.LPCWSTR,wintypes.DWORD,ctypes.POINTER(DisplayDevice),wintypes.DWORD]
     callback_type=ctypes.WINFUNCTYPE(wintypes.BOOL,wintypes.HANDLE,wintypes.HDC,ctypes.POINTER(wintypes.RECT),wintypes.LPARAM)
+    errors=[]
     def callback(monitor,dc,rect,unused):
-        r=rect.contents; result.append((r.left,r.top,r.right-r.left,r.bottom-r.top)); return True
+        info=MonitorInfo(); info.cbSize=ctypes.sizeof(info)
+        device=DisplayDevice(); device.cb=ctypes.sizeof(device)
+        if not library.GetMonitorInfoW(monitor,ctypes.byref(info)):
+            errors.append('Cannot read monitor identity'); return False
+        if not library.EnumDisplayDevicesW(info.szDevice,0,ctypes.byref(device),1):
+            errors.append('Cannot read monitor interface'); return False
+        r=rect.contents
+        result.append((info.szDevice,device.DeviceID,device.DeviceKey,
+            (r.left,r.top,r.right-r.left,r.bottom-r.top)))
+        return True
     native_callback=callback_type(callback)
     library.EnumDisplayMonitors.argtypes=[wintypes.HDC,ctypes.c_void_p,callback_type,wintypes.LPARAM]
-    if not library.EnumDisplayMonitors(None,None,native_callback,0): raise OSError('Monitor scan failed')
-    return result
+    if not library.EnumDisplayMonitors(None,None,native_callback,0) or errors: raise OSError('Monitor scan failed: '+str(errors))
+    return sorted(result)
+
+
+def monitor_rectangles(): return [record[-1] for record in monitor_topology()]

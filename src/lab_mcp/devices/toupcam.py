@@ -118,6 +118,7 @@ class ToupCamAdapter:
         except Exception as exc: self.queue.publish_error(exc)
 
     def capture(self,request,boundary_ns,on_frame):
+        self.check_capture_ready()
         settings=self.settings()
         minimum=request.settle_s+(request.frames+request.discard_frames+1)*settings['exposure_us']/1e6
         if request.timeout_s<minimum: raise ValueError('Timeout cannot cover exposure, settling and frame count')
@@ -131,6 +132,11 @@ class ToupCamAdapter:
             result['settings']=settings
             return result
         finally: self.roi=None
+
+    def check_capture_ready(self):
+        if self.camera is None or not self.started or self.state['status']!='streaming':
+            raise LabError('unavailable','CCD stream is not usable')
+        self.queue.check_ready()
 
     def status(self): return copy.deepcopy(self.state)
 

@@ -50,6 +50,7 @@ class SimulatedCamera:
         if patch.exposure_us is not None: self.current['auto_exposure']=0
         return self.settings()
     def capture(self,request,boundary_ns,on_frame):
+        self.check_capture_ready()
         s=self.settings(); threshold=int(boundary_ns+(request.settle_s+s['exposure_us']/1e6)*1e9)
         remaining=(threshold-time.monotonic_ns())/1e9
         if remaining>0: time.sleep(remaining+.016)
@@ -67,5 +68,7 @@ class SimulatedCamera:
             else: on_frame(FrameRecord(raw,meta)); retained.append(meta)
         return {'simulation':True,'frames':retained,'discarded':discarded,'settings':s,
             'freshness_threshold_ns':threshold,'screen_done_monotonic_ns':boundary_ns}
+    def check_capture_ready(self):
+        if not self.connected: raise LabError('unavailable','Simulated CCD not connected')
     def status(self): return {'status':'streaming' if self.connected else 'disconnected','simulation':True,'settings':copy.deepcopy(self.current)}
     def disconnect(self): self.connected=False; return {'status':'disconnected','errors':[],'simulation':True}

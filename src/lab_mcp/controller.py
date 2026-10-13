@@ -15,6 +15,7 @@ class LabController:
         self.config=config; self.slm=slm; self.camera=camera; self.assets=assets; self.captures=captures; self.journal=journal
         self.operation_lock=threading.RLock(); self.state_lock=threading.RLock(); self.version=0
         self.bases={}; self.restores={}; self.closed=False; self.last_error=None
+        self.uncertain_results={}
 
     def status(self):
         with self.state_lock:
@@ -22,7 +23,9 @@ class LabController:
                 'ccd':self.camera.status(),'last_error':copy.deepcopy(self.last_error),
                 'checked_monotonic_ns':time.monotonic_ns()}
 
-    def operation_get(self,operation_id): return self.journal.get(operation_id)
+    def operation_get(self,operation_id):
+        if operation_id in self.uncertain_results: return copy.deepcopy(self.uncertain_results[operation_id]['result'])
+        return self.journal.get(operation_id)
 
     def _require_slm(self,role):
         if role not in ('slm1','slm2') or self.slm.status()[role]['status']!='connected':
@@ -30,6 +33,8 @@ class LabController:
 
     def _prepare_load(self,request,*,grating=None,base_codes=None):
         self._require_slm(request.role)
+        if request.bit_depth is None:
+            request=request.model_copy(update={'bit_depth':self.config.slms[request.role].bit_depth})
         codes=read_codes(self.assets.resolve(request.source),packed_rgb=request.packed_rgb) if base_codes is None else base_codes.copy()
         spec=grating or GratingSpec()
         lut=read_phase_lut(self.assets.resolve(spec.lut_source),expected_codes=1<<request.bit_depth) if spec.mode=='lut' and spec.lut_source else None
@@ -39,6 +44,7 @@ class LabController:
         return {'codes':codes,'request':request.model_copy(deep=True),'grating':spec.model_copy(deep=True),'panel':panel}
 
     def _capture_preflight(self,request,patch=None):
+        self.camera.check_capture_ready()
         s=self.camera.settings()
         exposure=patch.exposure_us if patch and patch.exposure_us is not None else s['exposure_us']
         minimum=request.settle_s+(request.frames+request.discard_frames+1)*exposure/1e6
@@ -73,7 +79,8 @@ class LabController:
             return self._prepare_load(req,grating=spec,base_codes=base['codes'])
         if op=='slm_show_uniform':
             role=args['role']; self._require_slm(role)
-            gray=args['gray']; bits=args.get('bit_depth',self.config.slms[role].bit_depth)
+            gray=args['gray']; bits=args.get('bit_depth')
+            if bits is None: bits=self.config.slms[role].bit_depth
             if type(gray) is not int or bits not in (8,10) or not 0<=gray<1<<bits: raise ValueError('Invalid uniform code')
             w,h=self.config.slms[role].panel_wh
             source=self.assets.register_codes(np.full((h,w),gray,dtype=np.uint8 if bits==8 else np.uint16),'uniform')
@@ -97,6 +104,10 @@ class LabController:
         params={'op':op,'args':args,'expected_version':expected_version}
         with self.operation_lock:
             if self.closed: raise LabError('closed','Controller has been closed')
+            if ident in self.uncertain_results:
+                cached=self.uncertain_results[ident]
+                if cached['params']!=params: raise ValueError('Operation ID reused with different parameters')
+                return copy.deepcopy(cached['result'])
             try: existing=self.journal.get(ident)
             except ValueError: existing=None
             if existing:
@@ -106,9 +117,10 @@ class LabController:
                 raise LabError('version_conflict','State changed since requested version')
             prepared=self._preflight(op,args)
             self.journal.begin(ident,params)
-            submitted=False; stage='prepared'
+            submitted=False; stage='prepared'; advanced=False
             def mark(name,hardware=False):
                 nonlocal stage,submitted
+                if stage!='prepared': self.journal.complete_stage(ident,stage)
                 stage=name; submitted=submitted or hardware
                 self.journal.stage(ident,name,hardware_submitted=submitted)
             try:
@@ -143,8 +155,9 @@ class LabController:
                     mark('camera.capture',True)
                     metadata=self.camera.capture(prepared['capture'],boundary,prepared['writer'].write_frame)
                     mark('capture.save'); payload=prepared['writer'].finish({**metadata,'state_before':self.status()})
-                with self.state_lock: self.version+=1
+                with self.state_lock: self.version+=1; advanced=True
                 result={'operation_id':ident,'status':'succeeded','state_version':self.version,'result':payload}
+                self.journal.complete_stage(ident,stage)
                 self.journal.finish(ident,result)
                 return result
             except Exception as exc:
@@ -153,11 +166,15 @@ class LabController:
                 if 'writer' in prepared:
                     try: error['details']['partial_capture']=prepared['writer'].fail(copy.deepcopy(error))
                     except Exception: error['details']['partial_capture']=prepared['writer'].result
-                if submitted:
+                if submitted and not advanced:
                     with self.state_lock: self.version+=1
                 self.last_error=error
                 result={'operation_id':ident,'status':'failed','state_version':self.version,'error':error}
-                self.journal.fail(ident,result)
+                try: self.journal.fail(ident,result)
+                except Exception as journal_error:
+                    error['details']['journal_failure']=str(journal_error)
+                    result['status']='uncertain'
+                    self.uncertain_results[ident]={'params':copy.deepcopy(params),'result':copy.deepcopy(result)}
                 return result
 
     def _show(self,prepared):

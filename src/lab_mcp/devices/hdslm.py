@@ -36,12 +36,13 @@ class HDSLMOwner:
         self.queue=queue.Queue(); self.thread=None; self.ready=None; self.state_lock=threading.RLock()
         self.states={role:{'status':'disconnected' if cfg.enabled else 'unavailable'} for role,cfg in configs.items()}
         self.opened={}; self.handles={}; self.fatal=None
+        self.topology=None; self.requires_rebind=False
 
     def _call(self,command,*args):
+        if self.fatal: raise LabError('slm_owner_error',self.fatal,stage=command)
         if self.thread is None:
             self.ready=Future(); self.thread=threading.Thread(target=self._worker,name='HDSLM-owner',daemon=True)
             self.thread.start(); self.ready.result(timeout=30)
-        if self.fatal: raise LabError('slm_owner_error',self.fatal,stage=command)
         future=Future(); self.queue.put((command,args,future))
         try: return future.result(timeout=30)
         except TimeoutError:
@@ -54,16 +55,43 @@ class HDSLMOwner:
         with self.state_lock: return copy.deepcopy(self.states)
     def disconnect(self,roles=None):
         if self.thread is None: return self.status()
-        result=self._call('disconnect',roles)
-        if roles is None:
-            self.thread.join(timeout=5); self.thread=None
-        return result
+        try: return self._call('disconnect',roles)
+        finally:
+            if roles is None:
+                self.thread.join(timeout=5)
+                if not self.thread.is_alive(): self.thread=None
+                if self.opened: self.fatal='Native windows could not be closed; restart process required'
+
+    def _topology(self,sdk):
+        if self.factory:
+            records=getattr(sdk,'topology_records',sdk.topology_rectangles)
+        else: records=windows.monitor_topology()
+        return copy.deepcopy(sorted(records,key=repr))
+
+    def _check_topology(self,sdk):
+        if self.requires_rebind or self._topology(sdk)!=self.topology:
+            self.requires_rebind=True
+            for state in self.states.values():
+                if state['status']!='unavailable': state.update(status='error',requires_rebind=True)
+            raise LabError('topology_changed','Display topology or identity changed; close owner and explicitly re-probe/rebind')
+
+    def _close_roles(self,sdk,roles):
+        errors={}
+        for role in roles:
+            d=self.opened.get(role)
+            try:
+                if d is not None: sdk.close(d['index'])
+                self.opened.pop(role,None); self.handles.pop(role,None)
+                self.states[role]={'status':'disconnected' if self.configs[role].enabled else 'unavailable'}
+            except Exception as exc:
+                errors[role]=str(exc)
+                self.states[role].update(status='error',close_error=str(exc))
+        return errors
 
     def _health(self,role,sdk):
         display=self.opened[role]; cfg=self.configs[role]
         expected=(*cfg.desktop_xy,*cfg.panel_wh)
-        rectangles=sdk.topology_rectangles if self.factory and hasattr(sdk,'topology_rectangles') else windows.monitor_rectangles()
-        if expected not in rectangles: raise LabError('topology_changed','Display topology changed; stop and rebind')
+        self._check_topology(sdk)
         if self.factory:
             alive=sdk.window_alive(display['index'])
             result={'alive':alive,'hung':sdk.window_hung(display['index']),'unobscured':alive,'simulation':True}
@@ -79,7 +107,9 @@ class HDSLMOwner:
             else:
                 require_windows_x64(); windows.enable_owner_dpi()
                 sdk=load_vendor_module('lab_vendor_hdslm',self.sdk_dir/'hdslm_sdk.py').SLMDisplay(str(self.sdk_dir),verbose=False)
+            self.topology=self._topology(sdk); self.requires_rebind=False
             displays=sdk.list_displays()
+            self._check_topology(sdk)
             self.ready.set_result(True)
             next_health=0
             while True:
@@ -96,6 +126,7 @@ class HDSLMOwner:
                 terminate=False
                 try:
                     if command=='connect':
+                        self._check_topology(sdk)
                         selected=select_roles({r:self.configs[r] for r in args[0]},displays)
                         for role,d in selected.items():
                             if d is None:
@@ -121,11 +152,10 @@ class HDSLMOwner:
                         self.states[role].update(last=result)
                     elif command=='disconnect':
                         roles=args[0]
-                        for role in list(self.opened) if roles is None else roles:
-                            d=self.opened.pop(role,None)
-                            if d is not None: sdk.close(d['index'])
-                            self.states[role]={'status':'disconnected' if self.configs[role].enabled else 'unavailable'}
-                        result=self.status(); terminate=roles is None
+                        terminate=roles is None
+                        errors=self._close_roles(sdk,list(self.opened) if roles is None else roles)
+                        if errors: raise LabError('slm_close_failed','Some projection windows failed to close',details={'roles':errors})
+                        result=self.status()
                     else: raise ValueError('Unknown owner command')
                     future.set_result(result)
                 except Exception as exc: future.set_exception(exc)
@@ -134,7 +164,4 @@ class HDSLMOwner:
             self.fatal=str(exc)
             if not self.ready.done(): self.ready.set_exception(exc)
         finally:
-            for role,d in list(self.opened.items()):
-                try: sdk.close(d['index'])
-                except Exception: pass
-            self.opened.clear()
+            if sdk is not None: self._close_roles(sdk,list(self.opened))

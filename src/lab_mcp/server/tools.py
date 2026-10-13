@@ -25,7 +25,7 @@ def create_mcp(controller,assets,captures):
         if isinstance(payload,dict) and 'capture_id' in payload and 'preview.png' in payload.get('files',{}):
             png=captures.registered_file(payload['capture_id'],'preview.png').read_bytes()
             content.append(ImageContent(type='image',data=base64.b64encode(png).decode('ascii'),mimeType='image/png'))
-        return CallToolResult(content=content,structuredContent=result,isError=result['status']=='failed')
+        return CallToolResult(content=content,structuredContent=result,isError=result['status'] in ('failed','uncertain'))
 
     @mcp.tool(annotations=read,structured_output=True)
     def lab_status()->dict[str,Any]:
@@ -84,7 +84,7 @@ def create_mcp(controller,assets,captures):
         return await execute('slm_make_amplitude_grating',{'width':width,'height':height,'fx':fx,'fy':fy,'style':style,'low':low,'high':high,'duty':duty},operation_id)
 
     @mcp.tool(annotations=write,structured_output=False)
-    async def slm_show_uniform(role:SLMRole,gray:StrictInt,bit_depth:Literal[8,10]=10,operation_id:str|None=None,expected_version:StrictInt|None=None)->CallToolResult:
+    async def slm_show_uniform(role:SLMRole,gray:StrictInt,bit_depth:Literal[8,10]|None=None,operation_id:str|None=None,expected_version:StrictInt|None=None)->CallToolResult:
         """Show a full-panel uniform code; this does not promise optical extinction."""
         return await execute('slm_show_uniform',{'role':role,'gray':gray,'bit_depth':bit_depth},operation_id,expected_version)
 

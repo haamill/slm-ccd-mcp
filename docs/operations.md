@@ -2,9 +2,9 @@
 
 ## 当前本机配置
 
-项目：`D:/ExpSoftware/slm-ccd-mcp`。2026-10-13只读SDK探测确认仅一块HDSLM80RPS / UPL0080 / 1920×1200，桌面坐标(3072,0)；按用户“振幅屏未插入”映射为SLM2。CCD枚举为IUA24500KMA单色。SLM2小图相对居中偏移 **(+10,+61)**。
+项目：`D:/ExpSoftware/slm-ccd-mcp`。2026-10-13初次SDK探测只有(3072,0)的一块HDSLM；关闭厂家GUI后重新探测出现(3072,0)与(4992,0)两块HDSLM80RPS / UPL0080 / 1920×1200，物理SLM2对应正在向用户确认。CCD已实拍IUA24500KMA单色YYYY RAW、12bit、5312×4592。SLM2小图相对居中偏移 **(+10,+61)**。
 
-WLAN地址：`10.195.186.75`。本机私有绑定配置在 `config/local.toml`，令牌在 `config/local.token`；二者不受Git跟踪。IP或插拔变化后重新核验配置。跨电脑真实连接仍需要在另一台电脑验收。
+WLAN地址：`10.195.186.75`。本机私有绑定配置在 `config/local.toml`，令牌在 `config/local.token`；二者不受Git跟踪。正式网关已启动，测试后CCD已释放；物理角色确认前两个SLM都暂禁用，CCD可独立使用。IP或插拔变化后重新核验配置。跨电脑真实连接仍需要在另一台电脑验收。
 
 ## 安装
 
@@ -75,7 +75,7 @@ Claude Code支持原生HTTP MCP配置，按 [Anthropic官方文档](https://code
 
 ## 网络与防火墙
 
-实验服务只绑定配置的私网接口。MCP与RAW下载都需要令牌。若另一台电脑无法连接，先检查IP、同网可达性和端口，再检查Windows网络profile / 防火墙。
+实验服务只绑定配置的私网接口。MCP与RAW下载都需要令牌。若另一台电脑无法连接，先检查IP、同网可达性和端口，再检查Windows网络profile / 防火墙。当前ZJUWLAN为Public；以下脚本仅配置Private规则，因此不能直接保证这个校园网络可连接。若保持Public，需由用户/管理员按客户端IP配置同等受限Public规则；本轮没有修改网络分类或开放防火墙。
 
 管理员PowerShell可以显式为客户端IP添加受限Private规则：
 
@@ -99,4 +99,4 @@ SLM1只支持加载8bit振幅图和生成独立振幅光栅，不对已有振幅
 
 ## 数据与关闭
 
-RAW位于 `runtime/captures/<capture_id>/raw_NNN.npy`，预览为preview.png，manifest记录配置、帧身份、丢帧和hash。SQLite保存命令执行阶段及结果。失败保留partial，预览不改变RAW。`lab_disconnect`释放设备；它不会结束MCP网关。
+RAW位于 `runtime/captures/<capture_id>/raw_NNN.npy`，预览为preview.png，manifest记录配置、帧身份、丢帧和hash。SQLite保存规范化命令/参数、各阶段开始/完成和结果；既有旧记录缺失字段保留为空，不能推测补全。失败保留partial，预览不改变RAW。持久化失败返回uncertain及operation_id，同进程查询也可取回内存结果，重启保留running/intent为uncertain，不自动重放。`lab_disconnect`释放设备；它不会结束MCP网关。

@@ -11,7 +11,8 @@ def array_hash(array):
 def compose_panel(codes, config, request):
     a = checked_codes(codes)
     actual_bits = 8 if a.dtype.itemsize == 1 else 10
-    if actual_bits != request.bit_depth or (request.role == 'slm1' and actual_bits != 8):
+    declared_bits=config.bit_depth if request.bit_depth is None else request.bit_depth
+    if actual_bits != declared_bits or (request.role == 'slm1' and actual_bits != 8):
         raise ValueError('Explicit bit depth does not match input/device')
     w, h = config.panel_wh
     background = config.background if request.background is None else request.background

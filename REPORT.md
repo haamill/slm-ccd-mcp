@@ -112,3 +112,43 @@ Task7已完成：18个MCP工具、3类资源、Bearer与Host/Origin双重校验�
 Task8软件部分完成：CLI/启动/防火墙脚本、Codex与Claude Desktop模板、私有本机绑定与令牌、运行及验收文档。71通过/1权限跳过，compileall和pip check通过；独立TCP回环smoke验证18工具、(470,161)与RAW下载SHA一致。临时服务已结束；并未以回环成功代替另一台电脑验收。
 
 今日只读SDK探测已确认HDSLM80RPS/UPL0080在桌面(3072,0)，CCD IUA24500KMA单色；没有打开设备。WLAN为10.195.186.75，本机硬件配置已按唯一已接相位屏绑定，SLM1禁用。ToupView/MagicHolo仍存在，已请求用户指定现场图/曝光和GUI释放方式；现场联调尚未完成。完整实现正进入独立代码审查。
+
+## 9. 独立审查后的最终实现
+
+第8节按时间记录历史状态；本节是审查修复及现场暗帧后的最新结论。独立审查在c93d311..6319b79范围发现6项Important和2项原Minor，按实际工作流影响将默认SLM1位深及巨大有限phi0静默错误升为Important。8项均进入一次修复轮，12条回归先观察失败再通过，全套83通过/2个Windows文件symlink权限跳过，目录junction测试实跑通过。详情见[审查归档](docs/archive/2026-10-13-native/review.md)。
+
+### 9.1 存储边界
+
+AssetStore/CaptureStore在初始化时固定canonical根路径。所有下载记录目录、manifest/asset metadata和最终文件都先resolve，再检查是否仍在固定root内，之后才能读取内容。这样记录目录本身被junction替换时不能把外部manifest先读取后当合法记录返回；上传及published资产同样校验。公开API只接受canonical UUID及登记file_id，不能以路径遍历枚举任意文件。该检查拒绝静态symlink/junction越界，不宣称对本机拥有文件系统写权限的并发恶意替换提供OS级目录句柄隔离。
+
+### 9.2 SLM owner与完整拓扑
+
+HDSLM owner启动时一次枚举SDK，同时固定完整Win32显示拓扑：每块active monitor的物理像素矩形、Windows显示设备名及monitor interface ID。连接前和周期健康检查比较完整快照，新增/删除其他屏或同矩形身份替换也会锁存requires-rebind。停止owner、重新probe和确认角色后再连接，避免复用缓存SDK index。此过程不在已打开窗口时调用SDK枚举。
+
+关闭每个角色独立尝试，只有close成功才删除opened记录；失败汇总到LabError.details.roles，后续角色仍尝试。全量关闭即使出错也结束线程并在finally再次清理，仍失败的窗口保持跟踪并要求重启进程。窗口健康含PID/handle、原生矩形、存活/挂起、最小化及前方遮挡；这些是软件状态，没有液晶面板图像的物理回读。
+
+### 9.3 CCD预检与操作记录
+
+CameraAdapter新增统一readiness方法，要求原生camera已打开、pull流已启动、status为streaming且FreshFrameQueue没有锁存错误。联合命令在曝光修改或投屏前先检查，正式capture入口再次检查以覆盖预检后的断连。回调错误仍唤醒采集并保留partial RAW。
+
+SQLite增加规范化params JSON和steps JSON，兼容旧数据库列迁移；旧数据缺少参数时保留null，不伪造历史。每个阶段先写started，成功后写completed，参数包括命令/资产ID/曝光/偏移等，结果关联capture和panel/input hash。数据库connection显式close。请求ID仍按规范化参数hash拒绝不同参数复用，不保存令牌或上传base64。
+
+若硬件已执行而SQLite finish/fail持续失败，MCP仍返回uncertain、operation_id、已提交阶段和journal_failure；内存缓存返回相同结果并拒绝重复硬件动作。进程重启后的原intent/running标为uncertain，同ID不重放。数据库及内存均不能提供已丢失物理帧的恢复，也不能保证磁盘故障时最终结果持久化成功。
+
+### 9.4 位深与相位
+
+省略LoadRequest/slm_show_uniform位深时由当前角色配置决定：SLM1默认8、SLM2默认10；显式的8/10与输入dtype仍严格校验。空间载波频率受±0.5cycle/pixel限制，phi0以弧度输入，先按2π约简，再与空间相位合成和整数量化，避免巨大有限常数溢出int64。附加光栅与位置调整仍从保留的原始图重算，restore snapshot不会随后续调整被覆盖。
+
+## 10. 实际CCD暗帧与LAN监听证据
+
+用户允许关闭ToupView与MagicHolo，并说明未开激光。两个已核验路径/PID均通过CloseMainWindow正常退出，没有强制结束其他进程。首次probe仅一块SLM；关闭GUI后的新probe出现两个相同HDSLM80RPS/UPL0080、1920×1200接口，桌面(3072,0)与(4992,0)，与Win32快照一致。物理SLM2对应正在确认；未把旧SN/index当作两屏身份，也未向SLM提交。
+
+正式hardware网关已仅绑定WLAN10.195.186.75:8765。测试客户端通过标准Streamable HTTP MCP及私有Bearer令牌连接同机LAN地址；只连接ccd，读取原AE1、曝光2000µs、增益100。以同一曝光2000µs固定AE0，实际范围读回30..15000000µs，增益100..5000。CCD原生型号IUA24500KMA、RAW FourCC YYYY、有效位深12、5312×4592。
+
+默认settle0.3秒、额外曝光间隔、丢弃3张新完成帧之后保存一张全幅uint16 NPY：capture_id=5a26259e-d2c4-4d76-b9aa-cf60021901ee，hostcounter5/SDKseq8。SDK只提供seq/timestamp标志，未伪造EXPOTIME字段；曝光设置保存在metadata.settings。主机有16ms时钟粒度，时序明确为保守软件同步，不声称精确曝光起点。写盘期间有5张队列丢帧，manifest如实记录，保存计数1。
+
+RAW认证流式下载SHA256与manifest一致；预览固定0..4095映射至1024×885，min1/max1007/mean16.065/near_full_fraction0。画面接近黑色，验证SDK/数据流而非一级衍射/标定位深响应。证据在runtime/hardware-dark-verification.json及runtime/captures/5a26259e-d2c4-4d76-b9aa-cf60021901ee/。RAW和原始运行证据按项目规则不提交Git。
+
+finally断开CCD时Stop、RAW/BITDEPTH/RGB选项、曝光/增益/原AE、Close全部成功，实际设置与原快照读回一致；SDK设备已释放，MCP网关继续监听。没有修改Windows防火墙/网络profile。当前ZJUWLAN为Public，现有Private脚本不直接覆盖此网络；另一台电脑的路由、防火墙/校园隔离、Codex/Claude真实调用仍需远端验收。
+
+收尾时物理SLM2对应仍待回复，因此本机配置暂将两个SLM均disabled，保留候选信息以便明确绑定后启用。网关正常重启加载最终源码；客户端可独立lab_connect(['ccd'])使用CCD，不能在确认前通过默认连接误投SLM。SLM代码与模拟验收已完成，现场SLM投屏、光栅响应及跨电脑连通仍未完成，不把任务8现场步骤标为通过。

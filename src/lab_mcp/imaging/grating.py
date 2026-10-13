@@ -7,7 +7,7 @@ def phase_ramp(shape, spec):
     h,w=shape
     x=np.arange(w)-w//2
     y=np.arange(h)-h//2
-    return 2*np.pi*(spec.fx*x[None,:]+spec.fy*y[:,None])+spec.phi0
+    return 2*np.pi*(spec.fx*x[None,:]+spec.fy*y[:,None])+(spec.phi0%(2*np.pi))
 
 
 def add_phase_grating(codes, spec, *, lut=None):

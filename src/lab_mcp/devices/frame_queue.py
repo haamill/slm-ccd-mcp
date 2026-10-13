@@ -19,6 +19,10 @@ class FreshFrameQueue:
         with self.condition:
             self.error=error; self.condition.notify_all()
 
+    def check_ready(self):
+        with self.condition:
+            if self.error: raise LabError('unavailable',f'CCD stream error: {self.error}')
+
     def collect(self,request,boundary_ns,exposure_us,on_frame):
         threshold=int(boundary_ns+(request.settle_s+exposure_us/1e6)*1e9)
         deadline=time.monotonic()+request.timeout_s

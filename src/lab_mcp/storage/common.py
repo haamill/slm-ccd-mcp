@@ -15,6 +15,14 @@ def checked_id(value):
     return canonical
 
 
+def confined_path(root,path,*,strict=False):
+    """Resolve before any read; root is the fixed canonical path from startup."""
+    resolved=Path(path).resolve(strict=strict)
+    if not resolved.is_relative_to(root):
+        raise ValueError('Storage path escapes its fixed root')
+    return resolved
+
+
 def write_json(path, data):
     path=Path(path)
     path.parent.mkdir(parents=True,exist_ok=True)

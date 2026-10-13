@@ -4,13 +4,14 @@ import shutil
 import uuid
 import numpy as np
 from ..imaging.preview import make_preview
-from .common import checked_id, write_json, read_json, file_hash
+from .common import checked_id, write_json, read_json, file_hash, confined_path
 
 
 class CaptureStore:
     def __init__(self,runtime_dir):
         self.root=Path(runtime_dir).resolve()/'captures'
         self.root.mkdir(parents=True,exist_ok=True)
+        self.root=self.root.resolve(strict=True)
 
     def prepare(self,request,sensor_wh,effective_bits):
         w,h=sensor_wh
@@ -27,14 +28,14 @@ class CaptureStore:
         checked_id(capture_id)
         if Path(file_id).name!=file_id or '/' in file_id or '\\' in file_id:
             raise ValueError('Invalid file ID')
-        directory=self.root/capture_id
-        meta_path=directory/'manifest.json'
+        directory=confined_path(self.root,self.root/capture_id)
+        meta_path=confined_path(self.root,directory/'manifest.json')
         if not meta_path.exists(): raise ValueError('Unknown capture')
         manifest=read_json(meta_path)
         if file_id!='manifest.json' and file_id not in manifest['files']:
             raise ValueError('File is not registered')
-        path=(directory/file_id).resolve(strict=True)
-        if not path.is_relative_to(directory.resolve()): raise ValueError('Invalid final file path')
+        path=confined_path(self.root,directory/file_id,strict=True)
+        if not path.is_relative_to(directory): raise ValueError('Invalid final file path')
         return path
 
 
