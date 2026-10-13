@@ -107,4 +107,8 @@ Task5已完成：ToupCam持续YYYY RAW流、范围检查和设置读回、三帧
 
 Task6已完成：统一操作锁、state_version、SQLite请求去重、不可重放的uncertain状态、联合预检/顺序/逐帧保存、OS单实例锁和模拟设备。59通过/1权限跳过；模拟相机提供确定非对称测试图，明确simulation，不作为光学模型或实验数据。
 
-Task7已完成：19个MCP工具、3类资源、Bearer与Host/Origin双重校验、认证流式下载及PNG内容块。66通过/1权限跳过，官方Client验证完整模拟调用链和legacy握手，网络取消后恢复请求不会重复采图。
+Task7已完成：18个MCP工具、3类资源、Bearer与Host/Origin双重校验、认证流式下载及PNG内容块。66通过/1权限跳过，官方Client验证完整模拟调用链和legacy握手，网络取消后恢复请求不会重复采图。
+
+Task8软件部分完成：CLI/启动/防火墙脚本、Codex与Claude Desktop模板、私有本机绑定与令牌、运行及验收文档。71通过/1权限跳过，compileall和pip check通过；独立TCP回环smoke验证18工具、(470,161)与RAW下载SHA一致。临时服务已结束；并未以回环成功代替另一台电脑验收。
+
+今日只读SDK探测已确认HDSLM80RPS/UPL0080在桌面(3072,0)，CCD IUA24500KMA单色；没有打开设备。WLAN为10.195.186.75，本机硬件配置已按唯一已接相位屏绑定，SLM1禁用。ToupView/MagicHolo仍存在，已请求用户指定现场图/曝光和GUI释放方式；现场联调尚未完成。完整实现正进入独立代码审查。

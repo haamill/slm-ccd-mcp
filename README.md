@@ -1,84 +1,103 @@
 # SLM / CCD MCP
 
-通过局域网 MCP 调用控制实验电脑上的空间光调制器（SLM）与 CCD 相机。另一台电脑上的 Codex / Claude 等本地 MCP 客户端负责交互，实验电脑负责设备占用、图案显示、相机采集及结果保存。
+在连接实验设备的Windows电脑上运行MCP服务，让另一台局域网电脑的Codex / Claude客户端控制SLM图案、位置和光栅，以及CCD曝光与RAW采集。
 
 ## 当前状态
 
-**2026-10-13：用户已批准并要求开始；正在实现，配置和公共模型已通过13项测试。服务尚未交付。**
+**2026-10-13：服务代码已实现，71项测试通过、1项Windows symlink权限跳过；独立TCP模拟调用链通过。正在完成独立代码审查与现场参数确认。**
 
-已完成：
+- 官方MCP2.3.0，18个工具、3类资源、Bearer认证与Host/Origin校验。
+- 支持图片分块上传、8bit/native10、精确拼板、相位载波/LUT、独立振幅光栅。
+- CCD支持曝光/增益/AE读回、RAW新帧、软件ROI、inline预览与认证下载。
+- 控制串行、联合加载采图、state_version、请求去重和partial结果保存。
+- 今日SDK只读枚举成功；本轮尚未投屏或打开CCD。现场图案/曝光/厂家GUI释放确认及跨电脑验收待完成。
 
-- 检查本机 HDSLM / ToupCam SDK 和既有实验控制代码。
-- 确认局域网客户端类型及首版范围，用户已同意会话方案。
-- 将当前 SLM2 默认相对居中偏移更新为 **(+10,+61)**；保留旧值来源用于追溯。
-- 建立项目核心文档和书面设计。
-- 用户批准书面设计，完成分阶段实施计划与自审。
+## 设备与当前绑定
 
-后续阶段：实施计划审阅及执行方式选择 → 实现 / 模拟设备与 MCP 协议验证 → 当前设备联调 → 另一台电脑局域网验收。
-
-## 首版规划
-
-| 范围 | 计划能力 |
+| 角色 | 当前信息 |
 |---|---|
-| SLM | 图片导入 / 上传、8bit 与 native10 数据、像素位置、相位载波、独立振幅光栅 |
-| CCD | 设置并读回曝光 / 增益 / 自动曝光，软件 ROI，采图和预览 |
-| 联合操作 | 加载图案、等待稳定、丢弃旧帧、保存新 RAW |
-| 结果 | RAW NPY、预览 PNG、参数 JSON 和受认证的下载接口 |
-| 运维 | 设备缓存状态、单实例锁、操作日志、请求去重、模拟模式 |
+| SLM1 | 振幅型，未插入；不阻碍其他角色使用 |
+| SLM2 | HDSLM80RPS / UPL0080，1920×1200，桌面(3072,0)，默认native10 |
+| SLM2偏移 | **(+10,+61)**，相对居中；1000×1000小图左上角(470,161) |
+| CCD | 今日枚举IUA24500KMA，单色；RAW有效位深和曝光须打开后读回 |
+| 局域网地址 | WLAN 10.195.186.75；正式端点规划 http://10.195.186.75:8765/mcp |
 
-上述能力是已提出的设计目标，不表示已实现或已完成设备验证。
+SDK直接引用 `D:/ExpSoftware/HDSLM_SDK` 和 `D:/ExpSoftware/toupcamsdk.20260908`，不修改或复制厂家DLL。旧偏移(+10,+69)仅作历史追溯。IP和插拔变化后须重新核验绑定。
 
-## 已知设备与配置来源
+## 安装
 
-| 项目 | 已知信息 | 证据范围 |
-|---|---|---|
-| SDK | HDSLM x64 / ToupCam x64 | 当前本机 SDK 文件存在 |
-| SLM1 | 振幅型，默认 8bit，当前未连接 | 用户说明；型号 / 分辨率来自历史记录 |
-| SLM2 | 相位型，默认 native10，历史面板 1920×1200 | 历史实测记录，今日绑定需重核验 |
-| SLM2 当前偏移 | 相对居中 (+10,+61) 像素 | 用户于 2026-10-13 明确确认 |
-| CCD | 历史 IUA24500KMA 单色，5312×4592，12 有效位 RAW | 历史实测；今日 SDK 读回待核验 |
+```powershell
+Set-Location -LiteralPath 'D:\ExpSoftware\slm-ccd-mcp'
+& 'D:\Program Files\Python312\python.exe' -m venv .venv
+& '.venv\Scripts\python.exe' -m pip install -r requirements.lock.txt
+& '.venv\Scripts\python.exe' -m pip install -e .
+```
 
-历史 1000×1000 小图在 1920×1200 面板上居中为 (460,100)，加当前偏移后左上角为 **(470,161)**。这是像素放置规则，不是新的光学标定。
+本机venv已安装。详见[运行说明](docs/operations.md)。
 
-## 安装与运行
+## 启动
 
-当前仅有设计和文档，没有安装命令或可运行服务。
+首次生成令牌（本机已有，命令不覆盖已有文件）：
 
-实施后计划使用独立的 Windows x64 Python 环境，直接引用本机 SDK 目录，不复制 DLL 到代码仓库。服务在已登录的交互式桌面会话中运行，以便 HDSLM 投屏窗口及消息泵正常工作。
+```powershell
+& '.venv\Scripts\python.exe' -m lab_mcp init-token --output config/local.token
+```
 
-计划入口提供模拟模式、设备探测、硬件服务启动以及关闭。局域网端点为可配置的 `http://<实验电脑局域网IP>:<端口>/mcp`，默认规划端口 8765；启用令牌认证。具体命令和客户端配置将在实现并验证后补齐。
+真实网关使用本机私有配置：
 
-## 目录结构
+```powershell
+& '.\scripts\start-lab-mcp.ps1' -ConfigPath config/local.toml
+```
+
+启动网关不会立即连接硬件；远端调用lab_connect才打开设备。Windows需保持交互式桌面会话，服务进程持续处理投屏窗口消息。ToupView/MagicHolo占用或遮挡时先由用户处理，服务不自动关闭其他程序。
+
+模拟服务：
+
+```powershell
+& '.\scripts\start-lab-mcp.ps1' -ConfigPath config/simulation.toml -Mode simulate
+```
+
+停止本项目owner后探测：
+
+```powershell
+& '.venv\Scripts\python.exe' -m lab_mcp probe --config config/hardware.example.toml
+```
+
+## 另一台电脑连接
+
+- [Codex配置模板](client_examples/codex.config.toml)：使用HTTP URL和LAB_MCP_TOKEN环境变量。
+- [Claude Desktop模板](client_examples/claude.desktop.json)：使用固定版本mcp-remote桥接，LAB_MCP_AUTH_HEADER由客户端进程环境提供。
+- [运行说明](docs/operations.md)包含具体配置、私网防火墙脚本和调用顺序。
+- [验收步骤](docs/acceptance.md)区分模拟、本机TCP、现场硬件和跨电脑证据。
+
+本机令牌在config/local.token，不进入Git；将相同令牌安全配置到客户端。网络profile、防火墙及校园WLAN客户端隔离需在另一台电脑实际核验。
+
+## 常用工具
+
+| 目的 | 工具 |
+|---|---|
+| 状态/连接 | lab_status、lab_connect、lab_disconnect |
+| 图片 | asset_upload_begin/chunk/finish、asset_list、slm_load_image |
+| 位置/载波 | slm_set_offset、slm_set_grating |
+| 振幅光栅/均匀码/恢复 | slm_make_amplitude_grating、slm_show_uniform、slm_restore |
+| 相机 | ccd_get_settings、ccd_set_settings、ccd_capture |
+| 联合操作/结果恢复 | lab_load_and_capture、operation_get |
+
+SLM图片保持原尺寸/码值；full panel不重复偏移，附加光栅每次从原图重算。相位码域与LUT合成分开，振幅图不按相位取模相加。RAW保存不受预览亮度映射影响。
+
+## 数据与目录
 
 ```text
 slm-ccd-mcp/
-├── AGENTS.md
-├── README.md
-├── LOG.md
-├── REPORT.md
-└── docs/
-    └── superpowers/
-        ├── specs/
-        │   └── 2026-10-13-slm-ccd-mcp-design.md
-        └── plans/
-            └── 2026-10-13-slm-ccd-mcp-implementation.md
+├── AGENTS.md / README.md / LOG.md / REPORT.md
+├── pyproject.toml / requirements.lock.txt
+├── src/lab_mcp/       # 图像、存储、设备、协调、MCP、CLI
+├── tests/            # 纯数组、SDK fake、事务、真实MCP Client
+├── config/           # 可提交示例 + 不提交的本机绑定/令牌
+├── client_examples/  # 另一台电脑的客户端模板
+├── scripts/          # 启动及显式Private防火墙配置
+├── docs/             # 设计、计划、运行和验收
+└── runtime/          # 不提交：探测、操作SQLite、assets、RAW/PNG/manifest
 ```
 
-设计中的 `src/`、`tests/`、`config/`、`scripts/`、`runtime/` 等为后续计划目录，当前未创建。
-
-## 重要说明
-
-- SLM1 缺席不阻碍只控制 SLM2 和 CCD。
-- 热插拔后重新启动设备绑定流程；旧 SDK index 和旧桌面坐标不直接沿用。
-- 相位图已含载频 / 数字透镜时，额外光栅默认关闭，避免重复合成。
-- 旧 SLM2 偏移 (+10,+69) 已被用户当前值 (+10,+61) 覆盖。
-- 采图预览的显示映射与原始 RAW 分开保存；预览亮度不改变 RAW。
-- 历史曝光、ROI、LUT 和光路参数均不是当前自动应用的现场配置。
-
-## 文档
-
-- [书面设计](docs/superpowers/specs/2026-10-13-slm-ccd-mcp-design.md)
-- [实施计划](docs/superpowers/plans/2026-10-13-slm-ccd-mcp-implementation.md)
-- [操作日志](LOG.md)
-- [项目报告](REPORT.md)
-- [开发指令](AGENTS.md)
+运行失败保留partial证据，不自动删除RAW。输入、凭据和本机配置由.gitignore排除。SDK hash与窗口状态是软件证据，真实光学效果仍须CCD实拍核验。

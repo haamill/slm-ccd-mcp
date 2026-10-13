@@ -1,0 +1,7 @@
+# Merge this block into the OTHER computer's ~/.codex/config.toml.
+# Give that computer the same LAB_MCP_TOKEN in its Codex process environment.
+[mcp_servers.slm_ccd_lab]
+url = "http://10.195.186.75:8765/mcp"
+bearer_token_env_var = "LAB_MCP_TOKEN"
+startup_timeout_sec = 20
+tool_timeout_sec = 180

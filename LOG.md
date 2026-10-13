@@ -154,3 +154,22 @@
 - 全套66通过/1权限跳过：真实MCP Client完成上传/投屏参数/曝光/采图/inline PNG/认证RAW下载hash核对，legacy握手通过。
 - 客户端取消后操作在线程内完成；重复operation_id不重新采图。未认证和错误Host/Origin被拒绝。
 - Task8准备CLI、启动与客户端模板、真实回环网络smoke及设备只读探测。投屏/曝光现场联调保留用户指定图像与曝光步骤。
+
+### Task8初验 / 设备探测与网络运行前
+
+- CLI和模拟smoke实现后，全套71通过/1权限跳过。将运行compileall、pip check和今日SDK只读枚举。
+- 本机WLAN IPv4读回10.195.186.75，另有Meta虚拟网卡；客户端模板使用WLAN地址，跨日需重新核验。
+- Codex官方文档与本机CLI确认URL/Bearer环境变量；Claude Desktop模板使用mcp-remote0.14.3及无空格header占位，凭据由客户端环境提供。
+- 接下来生成本项目私有token并测试独立TCP模拟服务；真实硬件smoke要求显式图像和曝光，不使用模拟测试图直接试投硬件。
+
+- 今日probe成功：HDSLM80RPS/UPL0080在(3072,0)、1920×1200，另一个显示为普通主屏；CCD IUA24500KMA单色。未打开设备，保存runtime/probe.json。
+- compileall、pip check、CLI help通过。已生成私有token，未输出值；本机硬件绑定配置仅登记枚举结果。
+- 自动审核拒绝复合后台启动命令（blocked by policy，无具体说明），未执行该命令。改为项目启动脚本在工具会话中运行回环模拟服务，端口8766；没有Start-Process后台进程或真实设备动作。
+- 用户现场图、曝光和是否可关闭厂家GUI的澄清已异步提出；继续完成独立网络验证和代码审查。
+
+### 独立TCP验证结果
+
+- 8766回环端口的独立服务进程与真实MCP Client完成smoke：18工具、placement(470,161)、RAW下载hash一致。
+- 结果在runtime/simulation-verification/network-smoke.json；capture ID为4a8ead98-79c0-44cc-85de-fd7174e2998f，simulation明确标记。
+- 临时模拟服务经工具会话Ctrl+C结束，退出码1，无硬件连接；接下来确认端口释放。
+- Task8软件交付已具备；现场投屏/CCD打开及另一台设备连接仍待确认/验收。将先对全部实现做独立代码审查，期间不操作厂家GUI。
