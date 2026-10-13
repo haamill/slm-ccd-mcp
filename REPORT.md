@@ -102,3 +102,5 @@ Task2已完成：灰度/明确RGB10读取、原生panel拼板、码域与LUT相�
 Task3已完成：限额与hash验证的分块上传、allowlist最终路径、不可变资产、分帧RAW/固定预览/partial manifest及SQLite请求日志。32通过/1权限跳过；这不证明真实硬件已操作。
 
 Task4已完成：HDSLM专用线程、一生期一次SDK枚举、同SN矩形角色绑定、Win32窗口遮挡/拓扑检查，API提交不自动重试。41通过/1权限跳过，验证使用fake SDK。
+
+Task5已完成：ToupCam持续YYYY RAW流、范围检查和设置读回、三帧容量队列、新帧丢弃/时间记录、ROI及异常释放恢复。50通过/1权限跳过。调查确认本机monotonic_ns读数约16ms粒度，不声称亚毫秒硬件同步；时序单测用独立指定帧时间。
