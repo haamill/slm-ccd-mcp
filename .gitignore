@@ -1,0 +1,26 @@
+# Local credentials and machine-specific settings
+.env
+.env.*
+!.env.example
+config/local.*
+
+# Device inputs, captures and operation records
+assets/
+runtime/
+*.log
+
+# Python environments and generated files
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Vendor binaries remain in the configured SDK directories
+*.dll
+*.lib
+*.exe
+*.zip
