@@ -1,0 +1,17 @@
+mode = "simulate"
+host = "127.0.0.1"
+port = 8765
+public_base_url = "http://127.0.0.1:8765"
+runtime_dir = "runtime"
+input_roots = ["assets"]
+
+[slms.slm1]
+enabled = false
+bit_depth = 8
+offset_xy = [0, 0]
+
+[slms.slm2]
+enabled = true
+bit_depth = 10
+panel_wh = [1920, 1200]
+offset_xy = [10, 61]
