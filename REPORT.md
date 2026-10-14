@@ -160,3 +160,5 @@ finally断开CCD时Stop、RAW/BITDEPTH/RGB选项、曝光/增益/原AE、Close�
 本机私有配置/令牌、实验图像与RAW/PNG/操作数据库、venv及厂家DLL/SDK不进入仓库。发布前同时检查当前跟踪文件和完整Git对象历史，避免仅凭gitignore遗漏曾提交文件。新空仓库以main承载完整项目；本机开发分支保留。硬件SLM角色和跨电脑验收的待确认状态继续在README中明确记录。
 
 HTTPS推送认证失败后，标准SSH握手已确认本机现有密钥认证为haamill；origin改用git@github.com:haamill/slm-ccd-mcp.git，继续向同一用户指定仓库发布，不读取或复制密钥内容。
+
+初次SSH上传已成功建立main（701763d），远端HEAD/main与本地完整提交SHA一致。仓库包含全部软件实现及历史；本机main跟踪origin/main，开发分支feat/slm-ccd-mcp仍保留。发布前新全套测试83通过/2个权限跳过，10份Markdown/11个本地链接核验通过；完整历史208对象/129blob未发现本项目私有token或排除目录/厂家二进制。成功记录随文档提交同步发布。

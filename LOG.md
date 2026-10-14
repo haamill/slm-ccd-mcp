@@ -225,3 +225,10 @@
 - 目标仓库可访问且无refs；准备配置origin并将本地main仅作祖先检查后的快进，再推送完整项目，开发分支保持现有工作目录。
 
 - 首次HTTPS推送被GitHub以Invalid username or token拒绝，远端没有写入。已验证现有SSH认证对应haamill账号（GitHub正常返回已认证、不提供shell）；使用同一仓库的SSH地址继续推送。
+
+### GitHub初次上传结果
+
+- SSH推送成功建立远端main，初次发布提交701763d；远端HEAD为refs/heads/main，git ls-remote核对main与本地主分支完整SHA一致。
+- origin已配置为用户指定仓库的SSH地址，本地main跟踪origin/main；当前feat/slm-ccd-mcp保留，工作目录D:/ExpSoftware/slm-ccd-mcp。
+- 源码、测试、四份核心文档、设计/计划、依赖及审查归档已上传。最后提交历史检查208个对象/129个blob，无本项目token或排除路径。
+- 将本条成功记录提交并快进推送到main后再核对最终远端SHA。SLM物理角色确认和另一台电脑连通仍为现场待验收，上传不改变此前设备验收结论。
