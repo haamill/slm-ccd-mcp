@@ -54,6 +54,7 @@
 
 ## 资料入口
 
+- GitHub：`https://github.com/haamill/slm-ccd-mcp`，用户于2026-10-14授权初次上传现有项目。
 - 设计：`docs/superpowers/specs/2026-10-13-slm-ccd-mcp-design.md`。
 - 计划：`docs/superpowers/plans/2026-10-13-slm-ccd-mcp-implementation.md`。
 - 历史实验：`C:/Syncthing/Python/EccentricityHolography`，仅作为来源。

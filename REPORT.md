@@ -152,3 +152,9 @@ RAW认证流式下载SHA256与manifest一致；预览固定0..4095映射至1024�
 finally断开CCD时Stop、RAW/BITDEPTH/RGB选项、曝光/增益/原AE、Close全部成功，实际设置与原快照读回一致；SDK设备已释放，MCP网关继续监听。没有修改Windows防火墙/网络profile。当前ZJUWLAN为Public，现有Private脚本不直接覆盖此网络；另一台电脑的路由、防火墙/校园隔离、Codex/Claude真实调用仍需远端验收。
 
 收尾时物理SLM2对应仍待回复，因此本机配置暂将两个SLM均disabled，保留候选信息以便明确绑定后启用。网关正常重启加载最终源码；客户端可独立lab_connect(['ccd'])使用CCD，不能在确认前通过默认连接误投SLM。SLM代码与模拟验收已完成，现场SLM投屏、光栅响应及跨电脑连通仍未完成，不把任务8现场步骤标为通过。
+
+## 11. GitHub初次发布
+
+2026-10-14用户建立并指定 [haamill/slm-ccd-mcp](https://github.com/haamill/slm-ccd-mcp) 为项目仓库，授权将现有实现上传。发布范围为源码、测试、依赖版本、示例配置、核心文档、设计/计划与审查归档，并保留开发提交历史。
+
+本机私有配置/令牌、实验图像与RAW/PNG/操作数据库、venv及厂家DLL/SDK不进入仓库。发布前同时检查当前跟踪文件和完整Git对象历史，避免仅凭gitignore遗漏曾提交文件。新空仓库以main承载完整项目；本机开发分支保留。硬件SLM角色和跨电脑验收的待确认状态继续在README中明确记录。

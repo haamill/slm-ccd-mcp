@@ -2,6 +2,8 @@
 
 在连接实验设备的Windows电脑上运行MCP服务，让另一台局域网电脑的Codex / Claude客户端控制SLM图案、位置和光栅，以及CCD曝光与RAW采集。
 
+项目仓库：[haamill/slm-ccd-mcp](https://github.com/haamill/slm-ccd-mcp)。本机工作目录为 `D:/ExpSoftware/slm-ccd-mcp`。
+
 ## 当前状态
 
 **2026-10-13：服务代码已实现，独立审查的8项问题已修复；83项测试通过、2项Windows文件symlink权限跳过。独立TCP模拟调用链及真实CCD暗帧链路通过。**

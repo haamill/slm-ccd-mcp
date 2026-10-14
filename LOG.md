@@ -213,3 +213,13 @@
 - 将核验核心Markdown链接、Git diff和凭据排除，并提交唯一审查修复及CCD验收阶段。没有远端仓库操作；本计划现场联调未结束，保留正在使用的ledger工作区，已把重要记录复制到docs/archive。
 
 - 交付文档检查：10份Markdown、11个本地链接、无缺失；私有token未出现在Git文件；config/local.toml、local.token和运行证据被ignore。diff发现ledger末尾多余空行，已修正后再检查。
+
+### 2026-10-14 GitHub初次上传运行前
+
+- 用户指定并授权上传至 https://github.com/haamill/slm-ccd-mcp。
+- 本地feat/slm-ccd-mcp工作区干净，最新实现d096120；尚未配置remote，目标git ls-remote没有任何已存在ref。
+- 上传前重新运行全套测试、文档链接检查；检查完整Git历史中令牌及排除目录/厂家二进制是否曾受跟踪。计划以完整项目建立远端main，保留开发分支与历史。
+
+### GitHub上传前检查结果
+- 新全套83通过/2个Windows文件symlink权限跳过。完整历史198个对象/123个blob，私有token与排除路径均未出现。文档10份/11个本地链接无缺失，私有配置、token、RAW记录和venv被ignore。
+- 目标仓库可访问且无refs；准备配置origin并将本地main仅作祖先检查后的快进，再推送完整项目，开发分支保持现有工作目录。
