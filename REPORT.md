@@ -162,3 +162,15 @@ finally断开CCD时Stop、RAW/BITDEPTH/RGB选项、曝光/增益/原AE、Close�
 HTTPS推送认证失败后，标准SSH握手已确认本机现有密钥认证为haamill；origin改用git@github.com:haamill/slm-ccd-mcp.git，继续向同一用户指定仓库发布，不读取或复制密钥内容。
 
 初次SSH上传已成功建立main（701763d），远端HEAD/main与本地完整提交SHA一致。仓库包含全部软件实现及历史；本机main跟踪origin/main，开发分支feat/slm-ccd-mcp仍保留。发布前新全套测试83通过/2个权限跳过，10份Markdown/11个本地链接核验通过；完整历史208对象/129blob未发现本项目私有token或排除目录/厂家二进制。成功记录随文档提交同步发布。
+
+## 12. 用户文档第1组双SLM加载
+
+2026-10-14用户已接两SLM与CCD，要求根据D:/lab/zty/2的README/FIRST_SIX先加载一组，并自行用CCD定位。选取文档第1行WORKING_STRAIGHT + DECODE_Qp0作为单亮点定位控制；没有执行六帧扫描、切下一decoder、加入字母MAIN或自动CCD采集。文档为实验参数依据，其中原作者其他授权边界不替代本聊天用户的本次设备操作指令。
+
+本地展平目录缺少SLM1_WORKING_STRAIGHT_FULL1920x1200_GRAY8.bmp；从C:/Syncthing/Python/Ecc2/runs/throughput_matching_20261014/load/slm1只读取得。展平README、DECODE_Qp0与旧U源均与该原包同名文件SHA一致，故使用同源原图，不猜测生成新直光栅。SLM1 BMP文件SHA c4f06f1f81ea65319c84a05c2184eb34dcd896c581d2a404666e906b612cd635；SLM2 BMP文件SHA 88d631999f7c8356b5ec05bae08760d88429e8be0cce8230fda7770e7dc28862。
+
+当前三个显示接口与昨日完整Win32身份一致，SLM1按历史记录匹配桌面3072,0（monitor UID261）、SLM2匹配4992,0（UID277）；今日SDK分别index1/2、同SN UPL0080、同尺寸1920×1200。MagicHolo按既有用户许可正常关闭，MCP为唯一投屏owner；不按旧厂家标签号替代今日SDK索引。
+
+先离线解码及compose_panel预检，再通过真实LAN MCP分块上传原BMP、asset完整SHA验证和格式检查，连接两SLM，顺序SLM2→SLM1加载。SLM1码uint8/0..242，SLM2明确厂家RGB10位布局解码为uint16/0..1023；均完整panel1200×1920，offset(0,0)，不添加虚拟透镜/额外光栅，也不重复加通用小图偏移10,61。panel输入/显示数组hash与原图相等：SLM1 eb4875addefc6161a7d519ffd5933ec270ec6305f40ee7c87d8bdcf87d20273a，SLM2 0f1b9a4aa0f16c6a2440dfd849acec27a758d809f50f96a0baadc83005f4194a。
+
+两次SLM SDK提交成功，最终窗口alive、unobscured且not hung。当前一组注册为明确restore snapshot并保持显示，持续owner消息泵。MCP CCD为disconnected，曝光/增益/ROI未改，由用户手动找文档的定位亮点。SDK/数组/窗口证据不证明真实光学点已出现；需要用户定位反馈。现场原证据、输入NPY快照和操作ID保留runtime/document_pair_20261014，按忽略规则不上传Git。

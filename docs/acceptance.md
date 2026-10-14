@@ -29,6 +29,8 @@ smoke通过标准网络MCP上传1000×1000 native10图、加载(+10,+61)、设�
 
 真实CCD已通过正式hardware网关的TCP MCP采到一张全幅暗帧：5312×4592、uint16容器、12有效位。保持2000µs曝光（测试期间AE关闭），丢弃3张新帧后保存，RAW认证下载SHA256相同。断开时原AE/曝光/增益及RAW选项恢复，全部读回通过。证据runtime/hardware-dark-verification.json及runtime/captures/5a26259e-d2c4-4d76-b9aa-cf60021901ee/；帧均值16.065/4095，激光未开，不能证明光栅/衍射行为。
 
+2026-10-14新现场步骤：按用户D:/lab/zty/2文档第1组，SLM1 WORKING_STRAIGHT8bit与SLM2 DECODE_Qp0原RGB10文件经MCP上传、解码、完整panel加载成功，offset0，不加额外载波/透镜。两屏选定x3072/x4992，与原始code hash一致，窗口alive/unobscured且未挂起。当前保留该组，ToupView运行，CCD由用户手动定位，尚未收到光学亮点反馈。证据runtime/document_pair_20261014；没有自动执行六组采图。
+
 硬件smoke需要全部显式参数：
 
 ```powershell

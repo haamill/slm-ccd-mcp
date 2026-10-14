@@ -232,3 +232,23 @@
 - origin已配置为用户指定仓库的SSH地址，本地main跟踪origin/main；当前feat/slm-ccd-mcp保留，工作目录D:/ExpSoftware/slm-ccd-mcp。
 - 源码、测试、四份核心文档、设计/计划、依赖及审查归档已上传。最后提交历史检查208个对象/129个blob，无本项目token或排除路径。
 - 将本条成功记录提交并快进推送到main后再核对最终远端SHA。SLM物理角色确认和另一台电脑连通仍为现场待验收，上传不改变此前设备验收结论。
+
+### 2026-10-14 文档首组加载运行前
+
+- 用户现已连接两个SLM和CCD，要求按D:/lab/zty/2文档先加载一组，CCD由用户自己定位；本次只操作两SLM，不连接或调参CCD，不执行文档六次采集。
+- README/FIRST_SIX指向第1组WORKING_STRAIGHT + DECODE_Qp0，满panel1920×1200、SLM1 GRAY8/SLM2 RGB10、offset0、无额外软件透镜/光栅。本机目录缺少直条纹文件，已在同源Ecc2/runs/throughput_matching_20261014/load/slm1找到；先核对README和已有decoder/source文件SHA一致再采用原图。
+- 映射依据为原实验记录SLM1 x3072、SLM2 x4992；须与今日SDK/Win32矩形、尺寸和SN共同匹配，不沿用旧SDK index。厂家MagicHolo当前在运行，按既有允许关闭授权正常关闭；ToupView保持运行供用户定位。
+- 资料搜索误把历史outputs JSON纳入全文扫描，输出过大，已停止宽搜索，后续只定点读取相关小文档/文件。一次shell拼写错误未执行Python或SDK，不影响设备。
+
+- 首组预检通过：README及现有decoder/旧U源与同源包逐文件SHA一致；直条纹GRAY8为1200×1920/0..242，decoder正确RGB10解码为1200×1920/0..1023。panel输入hash与原始数组完全一致。
+- MagicHolo已正常退出，今日probe与Win32均读回主屏及SLM x3072/x4992、1920×1200、UPL0080；按历史角色联合匹配配置启用两SLM。现在启动独占MCP owner，仅上传、连接两SLM、SLM2→SLM1提交并保留窗口，CCD不由MCP连接。
+
+### 文档首组加载结果
+
+- 标准MCP Client通过正式LAN端点上传原BMP并验证asset，成功连接两SLM；SLM2→SLM1提交均succeeded，窗口均alive/unobscured且未挂起，CCD状态disconnected。
+- SLM1(3072,0)原生8bit，数组SHA eb4875addefc6161a7d519ffd5933ec270ec6305f40ee7c87d8bdcf87d20273a；SLM2(4992,0)RGB10/native10，数组SHA 0f1b9a4aa0f16c6a2440dfd849acec27a758d809f50f96a0baadc83005f4194a。提交hash与预检原始码逐个相等，两个placement/offset均(0,0)，无额外载波/透镜。
+- source README、decoder及已有旧U源与同一Ecc2原包逐字节相同；缺失直条纹采用该同源包原BMP，没有生成替代图或改写用户资料。
+- 输入快照/preflight.json/probe_previous.json/probe_current.json/load_result.json保存在runtime/document_pair_20261014。服务继续运行并保持两屏，不断开SLM，不自动采集或改变CCD，由用户手动找像。此次只验证加载控制链，不声称已观察到光学亮点。
+
+- 运行后确认ToupView PID21152仍在，正式8765监听及两SLM窗口状态已核对。更新核心文档、运行/验收说明；仅文档变化，直接SDK/MCP加载核验作为本轮验证，不为该可逆操作新增或重跑软件测试。
+- 继续同步到用户先前授权的同一GitHub仓库；先检查文档链接、凭据排除及diff，再提交记录并快进main推送，保持投屏owner运行。
