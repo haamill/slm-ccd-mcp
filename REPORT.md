@@ -158,3 +158,5 @@ finally断开CCD时Stop、RAW/BITDEPTH/RGB选项、曝光/增益/原AE、Close�
 2026-10-14用户建立并指定 [haamill/slm-ccd-mcp](https://github.com/haamill/slm-ccd-mcp) 为项目仓库，授权将现有实现上传。发布范围为源码、测试、依赖版本、示例配置、核心文档、设计/计划与审查归档，并保留开发提交历史。
 
 本机私有配置/令牌、实验图像与RAW/PNG/操作数据库、venv及厂家DLL/SDK不进入仓库。发布前同时检查当前跟踪文件和完整Git对象历史，避免仅凭gitignore遗漏曾提交文件。新空仓库以main承载完整项目；本机开发分支保留。硬件SLM角色和跨电脑验收的待确认状态继续在README中明确记录。
+
+HTTPS推送认证失败后，标准SSH握手已确认本机现有密钥认证为haamill；origin改用git@github.com:haamill/slm-ccd-mcp.git，继续向同一用户指定仓库发布，不读取或复制密钥内容。

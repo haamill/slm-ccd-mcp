@@ -223,3 +223,5 @@
 ### GitHub上传前检查结果
 - 新全套83通过/2个Windows文件symlink权限跳过。完整历史198个对象/123个blob，私有token与排除路径均未出现。文档10份/11个本地链接无缺失，私有配置、token、RAW记录和venv被ignore。
 - 目标仓库可访问且无refs；准备配置origin并将本地main仅作祖先检查后的快进，再推送完整项目，开发分支保持现有工作目录。
+
+- 首次HTTPS推送被GitHub以Invalid username or token拒绝，远端没有写入。已验证现有SSH认证对应haamill账号（GitHub正常返回已认证、不提供shell）；使用同一仓库的SSH地址继续推送。
