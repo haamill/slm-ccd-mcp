@@ -31,6 +31,8 @@ smoke通过标准网络MCP上传1000×1000 native10图、加载(+10,+61)、设�
 
 2026-10-14新现场步骤：按用户D:/lab/zty/2文档第1组，SLM1 WORKING_STRAIGHT8bit与SLM2 DECODE_Qp0原RGB10文件经MCP上传、解码、完整panel加载成功，offset0，不加额外载波/透镜。两屏选定x3072/x4992，与原始code hash一致，窗口alive/unobscured且未挂起。当前保留该组，ToupView运行，CCD由用户手动定位，尚未收到光学亮点反馈。证据runtime/document_pair_20261014；没有自动执行六组采图。
 
+随后用户反馈角色可能反向：已停止原owner、重新枚举并对调试绑SLM1 x4992/SLM2 x3072，同一组码值和0offset再次提交成功，窗口健康/hash相同，当前保留的是对调组。证据runtime/document_pair_swapped_20261014；实体角色与光学定位点仍等待用户观察确认，不能把两次软件提交成功当作物理角色证明。
+
 硬件smoke需要全部显式参数：
 
 ```powershell

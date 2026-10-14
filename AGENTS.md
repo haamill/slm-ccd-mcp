@@ -9,7 +9,7 @@
 - 用户最初说明振幅型 SLM1 未插入；后续当前 probe 出现两个同 SN SLM，实际角色须按当日确认绑定。不能把某角色缺席作为其他设备服务的整体启动失败。
 - 2026-10-13暗帧阶段，用户允许关闭ToupView/MagicHolo，两者正常关闭，激光未开启；该历史暗帧不作光学效果验证。2026-10-14首组加载仅关闭MagicHolo，ToupView保持运行由用户操作。
 - 2026-10-14用户要求按D:/lab/zty/2文档加载一组并由其手动用CCD找像。当前保留FIRST_SIX第1组：SLM1 WORKING_STRAIGHT GRAY8、SLM2 DECODE_Qp0 RGB10，完整1920×1200、placement=panel/offset0，不加软件透镜或光栅。MCP只连接两SLM，CCD保持disconnected；不继续文档的六帧扫描或更换下一组，等用户反馈。
-- 今日Win32/SDK匹配历史角色：SLM1桌面(3072,0)、SLM2(4992,0)，均HDSLM80RPS/UPL0080、1920×1200。只按SN不能区分；稳定monitor interface及矩形共同记录。两窗口均alive/unobscured、不挂起，服务必须持续消息泵以保留显示。
+- 第一轮按历史位置SLM1(3072,0)/SLM2(4992,0)加载，用户反馈可能反向；当前已对调试绑SLM1振幅(4992,0)、SLM2相位(3072,0)，同组/同码/满屏offset0，等用户观察确认实体对应。两者同型号/SN，Win32接口和矩形只能标识输出口，不能证明器件振幅/相位角色；不得把旧记录或本次试绑写成用户已确认。两窗口均alive/unobscured、不挂起，服务必须持续消息泵以保留显示。
 
 ## 开发流程
 

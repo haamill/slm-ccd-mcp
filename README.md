@@ -13,19 +13,19 @@
 - CCD支持曝光/增益/AE读回、RAW新帧、软件ROI、inline预览与认证下载。
 - 控制串行、联合加载采图、state_version、请求去重和partial结果保存。
 - 真CCD采集5312×4592、12bit RAW，曝光2000µs读回、认证下载SHA256及原设置恢复通过；激光关闭，预览接近黑色。
-- 今日新probe按历史矩形映射启用两SLM，第1组WORKING_STRAIGHT + DECODE_Qp0已实际SDK提交，8/10bit、panel位置/窗口健康及输入hash一致；光学亮点由用户手动定位验证。另一台电脑连通待验收。
+- 第1组WORKING_STRAIGHT + DECODE_Qp0已实际SDK提交。用户指出历史角色映射可能反向后已对调重新加载，8/10bit、panel位置/窗口健康及输入hash一致；实体对应和光学亮点待用户手动观察确认。另一台电脑连通待验收。
 
 ## 设备与当前绑定
 
 | 角色 | 当前信息 |
 |---|---|
-| SLM1 | HDSLM80RPS / UPL0080，1920×1200，桌面(3072,0)，已加载WORKING_STRAIGHT GRAY8 |
-| SLM2 | HDSLM80RPS / UPL0080，1920×1200，桌面(4992,0)，已加载DECODE_Qp0 RGB10，无虚拟透镜 |
+| SLM1 | 当前试绑桌面(4992,0)，HDSLM80RPS / UPL0080，1920×1200，WORKING_STRAIGHT GRAY8 |
+| SLM2 | 当前试绑桌面(3072,0)，HDSLM80RPS / UPL0080，1920×1200，DECODE_Qp0 RGB10，无虚拟透镜 |
 | SLM2偏移 | **(+10,+61)**，相对居中；1000×1000小图左上角(470,161) |
 | CCD | IUA24500KMA，单色YYYY RAW，12有效位，5312×4592；已实拍暗帧 |
 | 局域网地址 | WLAN 10.195.186.75；正式端点已监听 http://10.195.186.75:8765/mcp |
 
-本次文档图案均为完整面板，加载 **offset0**、无额外软件光栅/透镜；上表(+10,+61)仍为小图相对居中的通用默认值，不重复加到本次满屏图。MCP未连接CCD，由用户手动找定位亮点。当前图案及来源证据见`runtime/document_pair_20261014/`，不进入Git。
+本次文档图案均为完整面板，加载 **offset0**、无额外软件光栅/透镜；上表(+10,+61)仍为小图相对居中的通用默认值，不重复加到本次满屏图。MCP未连接CCD，由用户手动找定位亮点。首次/对调证据分别在`runtime/document_pair_20261014/`和`runtime/document_pair_swapped_20261014/`，不进入Git；相同SN不能证明实体模式，当前试绑等待观察确认。
 
 SDK直接引用 `D:/ExpSoftware/HDSLM_SDK` 和 `D:/ExpSoftware/toupcamsdk.20260908`，不修改或复制厂家DLL。旧偏移(+10,+69)仅作历史追溯。IP和插拔变化后须重新核验绑定。
 

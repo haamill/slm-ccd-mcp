@@ -252,3 +252,13 @@
 
 - 运行后确认ToupView PID21152仍在，正式8765监听及两SLM窗口状态已核对。更新核心文档、运行/验收说明；仅文档变化，直接SDK/MCP加载核验作为本轮验证，不为该可逆操作新增或重跑软件测试。
 - 继续同步到用户先前授权的同一GitHub仓库；先检查文档链接、凭据排除及diff，再提交记录并快进main推送，保持投屏owner运行。
+
+### 用户反馈可能两SLM角色反向 / 对调前
+- 用户反馈可能弄反；上一组仅以历史位置映射，不能单凭相同型号/SN确认今日实体连接。
+- 将在保留第一轮证据后正常关闭owner，配置SLM1振幅角色到x4992、SLM2相位角色到x3072，重新probe再加载同一WORKING_STRAIGHT+DECODE_Qp0组；所有图码、位深、满panel/offset0不变，CCD不操作。此为对调验证，实体对应等待用户观察确认。
+
+### 对调加载结果
+
+- 原服务进程经Ctrl+C退出；SDK在退出时输出两条不可读编码的原生提示，无法据此证明旧restore成功，不把退出恢复记为通过。随后新独占probe/owner成功。
+- 对调配置SLM1 x4992/index2/8bit、SLM2 x3072/index1/10bit；两次slm_load_image成功，同原图array hash，offset0且无额外载波/透镜；最终窗口alive/unobscured/未挂起，CCD仍disconnected。
+- 首次运行证据及其配置快照保留，第二次写runtime/document_pair_swapped_20261014/load_result.json及新配置/probe。当前保持对调屏，物理角色由用户观察确认；已修正文档，不再把历史矩形映射当确定实体身份。

@@ -174,3 +174,11 @@ HTTPS推送认证失败后，标准SSH握手已确认本机现有密钥认证为
 先离线解码及compose_panel预检，再通过真实LAN MCP分块上传原BMP、asset完整SHA验证和格式检查，连接两SLM，顺序SLM2→SLM1加载。SLM1码uint8/0..242，SLM2明确厂家RGB10位布局解码为uint16/0..1023；均完整panel1200×1920，offset(0,0)，不添加虚拟透镜/额外光栅，也不重复加通用小图偏移10,61。panel输入/显示数组hash与原图相等：SLM1 eb4875addefc6161a7d519ffd5933ec270ec6305f40ee7c87d8bdcf87d20273a，SLM2 0f1b9a4aa0f16c6a2440dfd849acec27a758d809f50f96a0baadc83005f4194a。
 
 两次SLM SDK提交成功，最终窗口alive、unobscured且not hung。当前一组注册为明确restore snapshot并保持显示，持续owner消息泵。MCP CCD为disconnected，曝光/增益/ROI未改，由用户手动找文档的定位亮点。SDK/数组/窗口证据不证明真实光学点已出现；需要用户定位反馈。现场原证据、输入NPY快照和操作ID保留runtime/document_pair_20261014，按忽略规则不上传Git。
+
+### 12.1 用户指出角色可能反向后的对调
+
+用户反馈“你可能弄反了”。第一轮使用历史位置而未得到当天实体对应确认，历史记录不足以证明当前振幅/相位设备身份。相同SN和稳定Win32接口只能区分输出口，接线或实体模式不能从这些字段判断；第一轮软件成功不支持确定角色的结论。
+
+按该反馈做可逆对调试载，先保留第一轮证据及其本机配置快照，再停止owner、重新probe、将SLM1振幅试绑到(4992,0)/当前SDK index2，将SLM2相位试绑到(3072,0)/index1。原服务退出时有两条编码不可读的SDK提示，旧restore过程未获可靠读回，不记为通过；旧进程结束后新probe/owner和两屏提交成功。新运行原图、GRAY8/RGB10、full-panel/offset0及数组hash完全不变，CCD仍由用户操作。两窗口健康检查通过，当前保持的是对调版本。
+
+第二轮证据独立保存runtime/document_pair_swapped_20261014，引用第一轮结果而不覆盖；角色仍标注试绑，等待用户观察确认，不声明已经修正光学成像或证明实体角色。当前只换对应输出，不叠加光栅、不改变曝光，也不自动执行后续六帧。
