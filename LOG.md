@@ -310,3 +310,23 @@
 
 - 恢复后再次只读健康检查通过：同PID20384/同端点，认证握手和18工具正常，SLM1/2均connected且无requires_rebind/错误字段，CCD streaming。原故障报告保留，after_health.json另存。文档10份/11本地链接无缺失，git diff检查通过。
 - 本轮未改业务源码，采用实际MCP/SDK重连及数组/设置读回验证，不重复无关软件测试。同步维护记录至原授权仓库。
+
+- 维护文档提交1c15f7f已同步GitHub main。普通SSH22被当前网络关闭，改用ssh.github.com:443并校验既有github.com主机密钥后推送成功；未改变全局SSH/代理配置。设备状态不受Git同步影响。
+
+### 2026-10-18 再次检查及按需恢复运行前
+
+- 用户要求检查MCP，若异常恢复正常；保留当前图案与CCD设置，必要时沿用已批准的短暂重连方式，不重复询问。
+- 8765仍由PID20384监听、WLAN10.195.186.75。先验证认证/握手/18工具、两SLM周期窗口健康和CCD实时设置；两屏健康时从现有CCD流取1帧64×64软件ROI验证新帧，曝光/增益/AE/图案不改。用expected_version避免插入其他客户端调参，新证据单独目录保存。
+- 若发现故障，先刷新当前参数与成功操作记录再修复，不使用上次恢复前的旧快照覆盖新实验。
+
+- 本轮当前屏已改变为SLM1 500×500、SLM2 800×800（均8bit、当前附加载波0）。原恢复脚本仅重建独立slm_load_image历史，不能覆盖后来lab_load_and_capture的加载；在任何硬件操作前已发现并改用当前缓存input/display hash匹配联合命令中的原asset请求。
+- 新恢复计划先与两路当前display hash逐个相等，再执行重连；CCD以实时16000µs/gain100/AE0恢复。所有快照与重建计划位于本轮独立recovery目录，上次证据保留。
+
+### 2026-10-18 再次恢复与新帧验证结果
+
+- 初检runtime/health_check_20261018_49253927/health.json确认协议认证正常、18工具可用，但两SLM再次error/requires_rebind；CCD仍streaming、16000µs/gain100/AE0。保留故障证据，未在初检时采图。
+- 根据本轮实时input/display hash匹配SQLite成功lab_load_and_capture中的原资产，重建500×500的SLM1与800×800的SLM2，均8bit，偏移分别0,0和10,61，附加光栅均0。所有离线display hash相同后，带expected_version执行全量释放、优先恢复CCD、无SLM窗口时probe、新owner连接两屏及恢复图案。
+- 恢复后SLM1 SHA7d0e767bd7988566787980a6f17e8f3339be92f907d91173a1f70b732f50bfe2，SLM2 SHA066d90f1446975c2751627f764672a6ed03277b53ea2d06e402e9ade02923a51，均与本轮维护前相同；两屏connected、窗口健康、无requires_rebind。CCD camera_id/全幅尺寸/有效位深和实时16000µs/gain100/AE0与维护前一致，streaming。完整恢复证据runtime/health_check_20261018_49253927/recovery/recovery.json。
+- 最终检查前已在本轮运行范围中记录64×64软件ROI新帧实采；运行runtime/check_mcp_current_20261018.py退出0，healthy=true、18工具、两SLM connected，CCD streaming、ccd_frame_and_settings_ok=true。capture_id=ab672ed5-9ab4-4f3b-84b2-763cdfe4de53，采图前后曝光/增益/AE未变。证据runtime/health_check_20261018_4837df2c/health.json。
+- 未改业务源码或运行中网关，PID20384与端点不变；CCD有已授权短暂断流。没有对光学效果或另一台电脑网络作超出证据的结论。更新四份核心文档及运行说明，接下来检查本地链接、凭据排除和Git差异，再同步既有授权仓库。
+- 本轮文档检查通过：10份Markdown、11个本地链接无缺失，跟踪文件中无私有令牌，git diff --check通过。仅维护记录变化，以本轮实际MCP/SDK恢复、hash/设置读回和新帧实采为验证，不重跑无关软件测试。准备提交并通过既有GitHub SSH443路径同步，保持全局配置不变。

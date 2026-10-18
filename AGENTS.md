@@ -2,15 +2,15 @@
 
 ## 目标与用户确认
 
-- 2026-10-18当前状态：用户授权重新探测绑定SLM，并随后明确允许CCD短暂重连、恢复同一个MCP服务。已通过全量设备disconnect、先恢复CCD、SLM新probe/connect恢复两屏；HTTP网关/PID/端点不变。SLM1(4992,0)/index2、SLM2(3072,0)/index1均connected且窗口健康。CCD streaming、8000µs、gain100、AE0，读回与维护前一致。
-- 当前图案按SQLite最后成功操作重建并核hash，不是10月14日初始包：SLM1 asset44a6bbfd…/8bit/centered offset0,0，SLM2 assete493f655…/8bit/centered offset10,61及此前既有fx=-0.5。下方10月14日首组/未加光栅说明为历史阶段，不可当当前屏。证据runtime/slm_rebind_20261018/recovery.json。
+- 2026-10-18最新检查与恢复：用户已允许CCD短暂重连、恢复同一个MCP服务。本轮两SLM再次锁存requires_rebind，通过全量设备disconnect、先恢复CCD、SLM新probe/connect恢复；HTTP网关PID20384及端点不变。SLM1(4992,0)/index2、SLM2(3072,0)/index1均connected且窗口健康。CCD streaming、16000µs、gain100、AE0，读回与本轮维护前一致，64×64软件ROI新帧实采通过。
+- 当前图案来自后续lab_load_and_capture：SLM1 asset2e34fcfc…/500×500/8bit/centered offset0,0；SLM2 assetdd6ed29b…/800×800/8bit/centered offset10,61；两屏当前附加光栅均为0，恢复前后display hash相同。旧8000µs及fx=-0.5为上一轮历史状态，不能用于本轮恢复。证据runtime/health_check_20261018_49253927/recovery/recovery.json与runtime/health_check_20261018_4837df2c/health.json。
 - 项目位于 `D:/ExpSoftware/slm-ccd-mcp`，在连接实验设备的 Windows 电脑上运行。
 - 另一台局域网电脑通过 Codex / Claude 等本地 MCP 客户端操作实验。
 - 首版覆盖 SLM 图片加载、加载位置、光栅，以及 CCD 曝光、增益、采图与单步联合操作。
 - 用户于 2026-10-13 同意首版范围，并明确当前 **SLM2 相对居中偏移为 (+10,+61) 像素**。旧记录 (+10,+69) 仅用于历史追溯。
 - 用户最初说明振幅型 SLM1 未插入；后续当前 probe 出现两个同 SN SLM，实际角色须按当日确认绑定。不能把某角色缺席作为其他设备服务的整体启动失败。
 - 2026-10-13暗帧阶段，用户允许关闭ToupView/MagicHolo，两者正常关闭，激光未开启；该历史暗帧不作光学效果验证。2026-10-14首组加载仅关闭MagicHolo，ToupView保持运行由用户操作。
-- 2026-10-14用户要求按D:/lab/zty/2文档加载一组并由其手动用CCD找像。当前保留FIRST_SIX第1组：SLM1 WORKING_STRAIGHT GRAY8、SLM2 DECODE_Qp0 RGB10，完整1920×1200、placement=panel/offset0，不加软件透镜或光栅。MCP只连接两SLM，CCD保持disconnected；不继续文档的六帧扫描或更换下一组，等用户反馈。
+- 2026-10-14历史阶段：用户要求按D:/lab/zty/2文档加载一组并由其手动用CCD找像。当时保留FIRST_SIX第1组：SLM1 WORKING_STRAIGHT GRAY8、SLM2 DECODE_Qp0 RGB10，完整1920×1200、placement=panel/offset0，不加软件透镜或光栅。MCP当时只连接两SLM，CCD disconnected；没有执行文档六帧扫描。当前图案与CCD设置见本节开头。
 - 第一轮按历史位置SLM1(3072,0)/SLM2(4992,0)加载，用户反馈可能反向；当前已对调试绑SLM1振幅(4992,0)、SLM2相位(3072,0)，同组/同码/满屏offset0，等用户观察确认实体对应。两者同型号/SN，Win32接口和矩形只能标识输出口，不能证明器件振幅/相位角色；不得把旧记录或本次试绑写成用户已确认。两窗口均alive/unobscured、不挂起，服务必须持续消息泵以保留显示。
 
 ## 开发流程
@@ -37,6 +37,7 @@
 - 所有 HDSLM 调用和窗口消息泵由同一专用线程拥有；应用在 Windows 交互式桌面会话运行。
 - 两块历史设备的名称 / SN 相同，不能只按序列号或旧 SDK index 绑定；使用角色、桌面区域、尺寸及枚举信息联合核验。
 - 完整 Win32 拓扑包含 monitor interface ID。变化后锁存 requires-rebind，关闭 owner 后重新探测和确认；不能在旧 SDK index 上继续提交。
+- 恢复必须从本轮实时状态读取参数，结合独立SLM命令和lab_load_and_capture中的loads匹配原资产；离线display hash相同后才重载。不得只回放独立加载历史而遗漏后续联合操作，也不得套用以前的CCD曝光快照。
 - SLM1 默认 uint8 / 0..255；SLM2 默认 uint16 容器 / 0..1023。显式的 8bit 相位输入保留原码，不隐式拉伸到 10bit。
 - 图片不自动缩放、插值、镜像、裁剪或逐图归一化；RGB10 打包文件必须显式声明后解码。
 - 相对居中偏移、整张面板图的位置、图像内的光栅相位是不同参数，不能重复叠加。
