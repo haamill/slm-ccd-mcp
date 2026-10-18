@@ -330,3 +330,4 @@
 - 最终检查前已在本轮运行范围中记录64×64软件ROI新帧实采；运行runtime/check_mcp_current_20261018.py退出0，healthy=true、18工具、两SLM connected，CCD streaming、ccd_frame_and_settings_ok=true。capture_id=ab672ed5-9ab4-4f3b-84b2-763cdfe4de53，采图前后曝光/增益/AE未变。证据runtime/health_check_20261018_4837df2c/health.json。
 - 未改业务源码或运行中网关，PID20384与端点不变；CCD有已授权短暂断流。没有对光学效果或另一台电脑网络作超出证据的结论。更新四份核心文档及运行说明，接下来检查本地链接、凭据排除和Git差异，再同步既有授权仓库。
 - 本轮文档检查通过：10份Markdown、11个本地链接无缺失，跟踪文件中无私有令牌，git diff --check通过。仅维护记录变化，以本轮实际MCP/SDK恢复、hash/设置读回和新帧实采为验证，不重跑无关软件测试。准备提交并通过既有GitHub SSH443路径同步，保持全局配置不变。
+- 恢复与验证记录已提交b8d4db2，GitHub main由1c15f7f快进至b8d4db2并推送成功；运行数据、私有配置和令牌未上传。本条同步结果随收尾日志提交。
