@@ -262,3 +262,51 @@
 - 原服务进程经Ctrl+C退出；SDK在退出时输出两条不可读编码的原生提示，无法据此证明旧restore成功，不把退出恢复记为通过。随后新独占probe/owner成功。
 - 对调配置SLM1 x4992/index2/8bit、SLM2 x3072/index1/10bit；两次slm_load_image成功，同原图array hash，offset0且无额外载波/透镜；最终窗口alive/unobscured/未挂起，CCD仍disconnected。
 - 首次运行证据及其配置快照保留，第二次写runtime/document_pair_swapped_20261014/load_result.json及新配置/probe。当前保持对调屏，物理角色由用户观察确认；已修正文档，不再把历史矩形映射当确定实体身份。
+
+### SLM2纵向光栅运行前
+- 用户明确追加SLM2纵向条纹以横向分离一级。该指令优先于实验README的额外光栅关闭，本轮只改SLM2，保留SLM1/CCD/无透镜/满屏offset0。
+- 同源生成器确认DECODE_Qp0已内含x周期5px载波及y行补偿；追加fx应计入已有0.2cycle/px，不能把光栅条纹方向误当fy。已异步询问追加周期，默认按文档offaxis320方案fx+0.12、fy0（额外8.333px，名义总3.125px）。先检查原包LUT的方向和语义，避免非线性10bit码直接当线性相位。
+
+- 用户询问“那是不是不用加了”，依据原图已含P5说明当前先不追加；前述fx+0.12只是未执行备选，没有调用slm_set_grating或重新投屏。下一步仅lab_status读回核验原hash/附加fx=fy=0及窗口状态，不操作CCD。
+
+- 上轮只读核对已完成：SLM2原始数组hash仍为0f1b9a4a…05f4194a，附加fx/fy/phi0均0，CCD disconnected；grating_review.json保留。未追加光栅。
+
+### 2026-10-16 当前连接检查运行前
+
+- 用户询问当前服务是否可连接以及连接方式。本轮只查监听、认证、MCP握手/工具列表/lab_status，不连接或更改SLM/CCD。
+- 当前WLAN仍10.195.186.75，8765监听PID20384，ZJUWLAN仍Public。检查本机CLI确认--url/--bearer-token-env-var语法，并核验官方Codex MCP配置说明。
+- 将从本机私有token文件内部读取令牌，仅向已有实验服务发送认证，输出摘要不显示令牌。远端电脑未直接访问，不能以本机检查宣称跨电脑已连通。
+
+### 2026-10-18 当前服务状态检查运行前
+- 用户询问当前MCP是否正常。本轮仅验证8765监听、认证拒绝/成功握手、工具列表和缓存lab_status，不枚举SDK、不重启owner、不投屏、不连接CCD。
+- WLAN仍为10.195.186.75，8765由原服务PID20384监听；已有未提交LOG记录保留。新检查另存今日报告，不覆盖10月16日证据。
+
+### 2026-10-18 当前服务状态检查结果
+
+- 只读检查成功：未认证HTTP401，认证MCP握手、18工具列表、lab_status均正常，地址http://10.195.186.75:8765/mcp，mode=hardware。
+- 两SLM仍status=error、requires_rebind=true；CCD当前status=streaming（区别于10月16日disconnected）。本轮未采新帧或改CCD设置，不把缓存streaming状态称为新采图验收。
+- 今日结果runtime/connectivity_20261018.json，未输出令牌，未做硬件修改/owner重启。另一台电脑路由/防火墙连通尚未直接验证。
+
+### 2026-10-18 SLM重新探测绑定运行前
+
+- 用户明确授权重新探测/绑定两SLM并修复报错，要求CCD保持当前状态。先读MCP缓存状态及当前Win32完整拓扑，保存CCD设置快照；不重启包含相机流的主进程，不调用CCD connect/disconnect/settings/capture。
+- 使用systematic-debugging核对根因与恢复接口：requires-rebind为拓扑变化锁存。现有lab_disconnect指定两SLM仅关闭窗口、不结束SLM owner；全量disconnect会关闭CCD，不能用它冒充SLM-only恢复。先确认实际显示接口是否齐全，再选择不影响CCD的最小恢复路径。
+
+- 诊断：两个Win32接口UID261/UID277都存在，物理矩形与原来一致；旧owner锁存requires_rebind。CCD缓存为streaming/8000µs/增益100/AE0。
+- 用户明确选择允许短暂重启CCD并恢复同一个MCP服务。采用现有MCP全量lab_disconnect→重新probe/绑定→lab_connect路径；可不结束HTTP网关进程，但设备owner/CCD流短暂重启。先保存实际CCD设置和SQLite中最近成功SLM输入及参数，随后恢复核验。
+
+### 恢复前图案重建核验
+- SQLite存在其它客户端后续成功操作，不能恢复为10月14日初始文档屏。按成功操作顺序重建最新输入、偏移和附加光栅，离线hash必须与日志最后成功提交一致后才修改硬件。
+- 最新SLM1为asset44a6bbfd…/8bit/centered0,0，最新SLM2为assete493f655…/8bit/centered10,61及原有fx=-0.5；该载波是既有成功操作，不是本次新增加。
+- 恢复脚本将先读取CCD真实设置，带expected_version做全量释放；先恢复CCD streaming/曝光/增益/AE，再单独枚举HDSLM并连接两屏，重放最新图案参数。整个HTTP网关进程和地址保持不变。
+
+### 2026-10-18 SLM恢复结果
+
+- 通过原MCP端点的lab_disconnect全部设备，SLM owner线程完整结束；CCD短暂释放后优先重连，恢复8000µs/增益100/AE0。未结束HTTP网关进程，未修改相机原始ROI/有效位深或做额外采图。
+- 确认无本进程SLM窗口后独立HDSLM probe，匹配SLM1 x4992/index2和SLM2 x3072/index1；主服务新owner再次初始化枚举并绑定成功。
+- 两屏重载当前实际图案及既有载波，最终SLM1 SHA26ca5916…5b5dc4，SLM2 SHAb0a78e82…b026fb，与最后成功实验操作完全一致。窗口alive/unobscured、未挂起，status=connected且requires_rebind不存在。
+- CCD实时设置读回与维护前相同，camera_id/5312×4592/12bit保持，状态streaming。维护经过expected_version串行校验。runtime/slm_rebind_20261018保存before、成功SLM历史、fresh probe/bindings、全部操作ID及前后CCD读回；没有输出令牌。
+- 接下来仅再次只读查询服务/设备状态并做文档检查，保留之前故障报告，不重复采图或重启。
+
+- 恢复后再次只读健康检查通过：同PID20384/同端点，认证握手和18工具正常，SLM1/2均connected且无requires_rebind/错误字段，CCD streaming。原故障报告保留，after_health.json另存。文档10份/11本地链接无缺失，git diff检查通过。
+- 本轮未改业务源码，采用实际MCP/SDK重连及数组/设置读回验证，不重复无关软件测试。同步维护记录至原授权仓库。

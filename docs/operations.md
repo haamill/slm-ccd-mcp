@@ -2,6 +2,8 @@
 
 ## 当前本机配置
 
+2026-10-18维护更新：两SLM已重新探测绑定并恢复connected（SLM1 x4992、SLM2 x3072），CCD按许可短暂重连后为streaming、8000µs/gain100/AE0。恢复的是当前日志最后成功图案：SLM1 8bit小图offset0,0；SLM2显式8bit小图offset10,61、原附加fx=-0.5。下方10月14日首组为历史配置描述，不能据此重新覆盖当前实验图案。
+
 项目：`D:/ExpSoftware/slm-ccd-mcp`。2026-10-14两块HDSLM80RPS / UPL0080 / 1920×1200完成今日枚举和窗口核验。第一轮历史位置映射被用户反馈可能反向，已对调试绑SLM1(4992,0)、SLM2(3072,0)，实体角色仍等待观察确认。当前保留用户文档FIRST_SIX第1组：SLM1 WORKING_STRAIGHT GRAY8、SLM2 DECODE_Qp0 RGB10，满屏offset0、无额外透镜/载波；用户通过ToupView找像，MCP未连接CCD。CCD此前已实拍IUA24500KMA单色YYYY RAW、12bit、5312×4592。SLM2通用小图相对居中默认偏移 **(+10,+61)**，不加到本次满panel图。
 
 WLAN地址：`10.195.186.75`。本机私有绑定配置在 `config/local.toml`，令牌在 `config/local.token`；二者不受Git跟踪。正式网关已启动且保留两SLM当前显示，MCP CCD为disconnected；先结束ToupView对相机的占用，再显式调用ccd连接工具可移交给MCP。IP或插拔变化后重新核验配置。跨电脑真实连接仍需要在另一台电脑验收。

@@ -2,6 +2,8 @@
 
 ## 目标与用户确认
 
+- 2026-10-18当前状态：用户授权重新探测绑定SLM，并随后明确允许CCD短暂重连、恢复同一个MCP服务。已通过全量设备disconnect、先恢复CCD、SLM新probe/connect恢复两屏；HTTP网关/PID/端点不变。SLM1(4992,0)/index2、SLM2(3072,0)/index1均connected且窗口健康。CCD streaming、8000µs、gain100、AE0，读回与维护前一致。
+- 当前图案按SQLite最后成功操作重建并核hash，不是10月14日初始包：SLM1 asset44a6bbfd…/8bit/centered offset0,0，SLM2 assete493f655…/8bit/centered offset10,61及此前既有fx=-0.5。下方10月14日首组/未加光栅说明为历史阶段，不可当当前屏。证据runtime/slm_rebind_20261018/recovery.json。
 - 项目位于 `D:/ExpSoftware/slm-ccd-mcp`，在连接实验设备的 Windows 电脑上运行。
 - 另一台局域网电脑通过 Codex / Claude 等本地 MCP 客户端操作实验。
 - 首版覆盖 SLM 图片加载、加载位置、光栅，以及 CCD 曝光、增益、采图与单步联合操作。
