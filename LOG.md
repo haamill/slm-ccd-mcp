@@ -331,3 +331,19 @@
 - 未改业务源码或运行中网关，PID20384与端点不变；CCD有已授权短暂断流。没有对光学效果或另一台电脑网络作超出证据的结论。更新四份核心文档及运行说明，接下来检查本地链接、凭据排除和Git差异，再同步既有授权仓库。
 - 本轮文档检查通过：10份Markdown、11个本地链接无缺失，跟踪文件中无私有令牌，git diff --check通过。仅维护记录变化，以本轮实际MCP/SDK恢复、hash/设置读回和新帧实采为验证，不重跑无关软件测试。准备提交并通过既有GitHub SSH443路径同步，保持全局配置不变。
 - 恢复与验证记录已提交b8d4db2，GitHub main由1c15f7f快进至b8d4db2并推送成功；运行数据、私有配置和令牌未上传。本条同步结果随收尾日志提交。
+
+### 2026-10-19 恢复运行前
+
+- 用户再次要求恢复MCP；先检查监听/认证/设备缓存状态与CCD实时读回，保留本轮图案和设置。沿用已明确授权的短暂CCD重连方式，不套用10月18日旧图、旧曝光。
+- 已检查项目指令、前次恢复与健康检查脚本；沿用systematic-debugging定位异常。HDSLM探测仅允许在本进程SLM窗口释放后进行，网关可响应时保持进程和端点。
+- 本轮快照/重建/操作与最终新帧报告使用独立20261019目录；恢复前校验实时图案hash及state_version未被其他客户端改变。恢复后将验证18工具、两路SLM窗口健康和CCD一张64×64软件ROI新帧，曝光/增益/AE保持本轮原值。
+- 初检runtime/health_check_20261019_dabd790b/health.json：接口认证与18工具正常，SLM1/2 error/requires_rebind；CCD streaming、实际64000µs/gain100/AE0。当前Win32三个显示接口及矩形齐全，异常与此前拓扑变化锁存一致，尚无证据定位触发该历史变化的外部事件。
+- 最新SLM1/2仍为500×500及800×800/8bit、offset0,0及10,61、附加光栅0，但内容hash已变，不能复用昨日图片。runtime/maintenance_20261019_769b242a/recovery已保存state_version482实时快照，并从联合操作匹配当前资产、离线hash相同。现在按原MCP接口全量释放设备、优先恢复CCD64000µs，再probe/rebind及重载原图；HTTP网关PID20384保持。
+
+### 2026-10-19 恢复及最终验证结果
+
+- recover.py退出0，status=recovered。同一网关PID20384/端点不变，两SLM新owner成功连接：SLM1 x4992/index2，SLM2 x3072/index1；两窗口connected/无遮挡、requires_rebind清除。
+- SLM1 display SHA6f6ef85a98119206b8549401ec335283e3e9c87f37189f3a505361da9471bd9d，SLM2 SHA1cbdffee27ec77deb01930ff7a30418eefa98768301c3ad90a4de7653560a679，均与本轮维护前相同；CCD恢复64000µs/gain100/AE0、原身份/尺寸/位深和streaming，ccd_settings_equal=true。恢复证据runtime/maintenance_20261019_769b242a/recovery/recovery.json。
+- 按运行前范围独立执行check_health.py，退出0、healthy=true、18工具、SLM1/2 connected、CCD streaming；取得64×64软件ROI新帧a944bfba-f251-4b05-8291-d3791e133583，采图前后CCD设置不变。最终报告runtime/health_check_20261019_7f82068c/health.json，故障报告保留。
+- 更新四份核心文档与运行说明。未改业务源码，以实际MCP/SDK/图案hash/设置及新帧验证完成本次恢复。接下来核验Markdown链接、凭据排除与Git差异，同步维护记录至原授权仓库。历史拓扑变化的外部触发原因尚不确定，未绕过保护或声称永久解决复发。
+- 文档核验通过：10份Markdown、11个本地链接无缺失，跟踪文件中不含私有令牌，git diff --check通过。运行证据和私有配置保持忽略；仅提交维护文档，使用此前验证的GitHub SSH443路径同步，不修改全局SSH/代理配置。

@@ -2,8 +2,8 @@
 
 ## 目标与用户确认
 
-- 2026-10-18最新检查与恢复：用户已允许CCD短暂重连、恢复同一个MCP服务。本轮两SLM再次锁存requires_rebind，通过全量设备disconnect、先恢复CCD、SLM新probe/connect恢复；HTTP网关PID20384及端点不变。SLM1(4992,0)/index2、SLM2(3072,0)/index1均connected且窗口健康。CCD streaming、16000µs、gain100、AE0，读回与本轮维护前一致，64×64软件ROI新帧实采通过。
-- 当前图案来自后续lab_load_and_capture：SLM1 asset2e34fcfc…/500×500/8bit/centered offset0,0；SLM2 assetdd6ed29b…/800×800/8bit/centered offset10,61；两屏当前附加光栅均为0，恢复前后display hash相同。旧8000µs及fx=-0.5为上一轮历史状态，不能用于本轮恢复。证据runtime/health_check_20261018_49253927/recovery/recovery.json与runtime/health_check_20261018_4837df2c/health.json。
+- 2026-10-19最新恢复：两SLM再次锁存requires_rebind，当前显示接口齐全；沿用用户许可，全量设备disconnect、先恢复CCD、SLM新probe/connect恢复。HTTP网关PID20384及端点不变。SLM1(4992,0)/index2、SLM2(3072,0)/index1均connected且窗口健康。CCD streaming、64000µs、gain100、AE0，与本轮维护前相同，64×64软件ROI新帧实采通过。尚未确定引起历史拓扑变化的外部事件。
+- 当前图案来自后续lab_load_and_capture：SLM1 asset197c4029…/500×500/8bit/centered offset0,0，display SHA6f6ef85a…71bd9d；SLM2 assetf3ae9565…/800×800/8bit/centered offset10,61，display SHA1cbdffee…60a679；两屏附加光栅0，恢复前后hash相同。之前16000µs及旧资产均为历史状态，不可套用。证据runtime/maintenance_20261019_769b242a/recovery/recovery.json与runtime/health_check_20261019_7f82068c/health.json。
 - 项目位于 `D:/ExpSoftware/slm-ccd-mcp`，在连接实验设备的 Windows 电脑上运行。
 - 另一台局域网电脑通过 Codex / Claude 等本地 MCP 客户端操作实验。
 - 首版覆盖 SLM 图片加载、加载位置、光栅，以及 CCD 曝光、增益、采图与单步联合操作。
