@@ -4,7 +4,7 @@
 
 本项目在连接 SLM 和 CCD 的 Windows 实验电脑上提供 MCP 服务，让另一台局域网电脑通过本地 Codex / Claude 等 MCP 客户端调用实验操作。用户常用操作为 SLM 图片加载位置、附加光栅与一级衍射位置调整，以及 CCD 曝光等相机参数。
 
-2026-10-13 用户确认首版范围、SLM2相对居中偏移 **(+10,+61)**，并批准设计与实施计划；服务实现、审查修复与83项软件测试已完成，代码已发布至用户指定仓库。2026-10-19最新维护恢复了两SLM与CCD，同一MCP端点18工具可用，CCD64000µs/gain100/AE0且64×64软件ROI新帧实采通过。后文按阶段保留设计、实现和现场记录，当前状态以最新维护章节为准。
+2026-10-13 用户确认首版范围、SLM2相对居中偏移 **(+10,+61)**，并批准设计与实施计划；服务实现、审查修复与83项软件测试已完成，代码已发布至用户指定仓库。2026-10-20最新维护重新绑定两SLM，同一MCP端点18工具可用，CCD8000µs/gain100/AE0且64×64软件ROI新帧实采通过。后文按阶段保留设计、实现和现场记录，当前状态以最新维护章节为准。
 
 ## 2. 已完成的调查与依据
 
@@ -220,3 +220,11 @@ CCD新流恢复streaming，同一camera_id、5312×4592、12有效位；实时�
 恢复SLM1(4992,0)/index2与SLM2(3072,0)/index1均connected且窗口健康，display SHA分别为6f6ef85a98119206b8549401ec335283e3e9c87f37189f3a505361da9471bd9d与1cbdffee27ec77deb01930ff7a30418eefa98768301c3ad90a4de7653560a679，与本轮维护前相同。两图分别500×500和800×800/8bit，offset0,0及10,61、附加光栅0。CCD身份、全幅尺寸、有效位深和实时曝光64000µs/增益100/AE0均保持。
 
 最终独立检查healthy=true：无令牌401、认证18工具、两SLM窗口健康且无requires_rebind，CCD streaming并实际取得一张64×64软件ROI新帧，capture_id=a944bfba-f251-4b05-8291-d3791e133583，采图前后设置相同。完整恢复证据runtime/maintenance_20261019_769b242a/recovery/recovery.json，最终报告runtime/health_check_20261019_7f82068c/health.json。恢复验证控制与新帧链路；尚无证据确定引起历史拓扑变化的外部事件，不宣称已消除所有复发原因，也不将本机MCP成功等同于跨电脑或光学成像验收。
+
+## 17. 2026-10-20重新绑定
+
+用户要求重新绑定。实时state_version501：SLM1 connected，SLM2保留“Projection window closed, moved or hung”错误，当前窗口健康且无requires_rebind字段。源码显示周期窗口检查失败会锁存error，后续健康检查成功只更新window，不自动解除error；本次不能直接归因为此前拓扑变化。三个显示接口及矩形齐全，触发历史窗口异常的外部事件尚未确定。
+
+离线匹配本轮实时原图：SLM1 asset197c4029…/500×500/8bit/居中offset0,0，SLM2已更新为asset9c11eaa7…/800×800/8bit/居中offset10,61，两路附加光栅0。以expected_version及维护前图案元数据守卫，按既有授权全量释放设备owner，优先恢复CCD本轮实际8000µs/gain100/AE0，在无投屏窗口时probe，然后重新绑定SLM1 x4992/index2、SLM2 x3072/index1并重载原图。网关PID20384与端点未变，CCD有已许可的短暂重连；没有修改业务源码或绕过安全检查。
+
+两屏最终connected且窗口健康，display SHA分别6f6ef85a98119206b8549401ec335283e3e9c87f37189f3a505361da9471bd9d与2ba0c359a311cbb763520a937fec70955d5b8c09d2e982105a3d5de09fae6f0c，与维护前相同；CCD原身份、尺寸、位深及实时设置保持，streaming。独立最终检查healthy=true、认证/18工具通过，64×64软件ROI新帧capture_id=5d252a9c-a599-466d-86bd-2d6b5dfd0807，采图前后设置相同。恢复证据runtime/maintenance_20261020_009aacd4/recovery/recovery.json，最终检查runtime/health_check_20261020_b0b1fe40/health.json；软件与新帧链路通过不等同于跨电脑网络或光学成像验收。

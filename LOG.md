@@ -347,3 +347,19 @@
 - 按运行前范围独立执行check_health.py，退出0、healthy=true、18工具、SLM1/2 connected、CCD streaming；取得64×64软件ROI新帧a944bfba-f251-4b05-8291-d3791e133583，采图前后CCD设置不变。最终报告runtime/health_check_20261019_7f82068c/health.json，故障报告保留。
 - 更新四份核心文档与运行说明。未改业务源码，以实际MCP/SDK/图案hash/设置及新帧验证完成本次恢复。接下来核验Markdown链接、凭据排除与Git差异，同步维护记录至原授权仓库。历史拓扑变化的外部触发原因尚不确定，未绕过保护或声称永久解决复发。
 - 文档核验通过：10份Markdown、11个本地链接无缺失，跟踪文件中不含私有令牌，git diff --check通过。运行证据和私有配置保持忽略；仅提交维护文档，使用此前验证的GitHub SSH443路径同步，不修改全局SSH/代理配置。
+
+### 2026-10-20 重新绑定运行前
+
+- 用户要求重新绑定两SLM，保留当前实验图案、偏移、光栅及CCD实时参数；沿用此前明确允许的短暂CCD重连方案，不使用昨日快照覆盖后续实验。
+- 已检查核心文档、当前Git状态与上次已验证维护脚本。先读取实时MCP状态和Win32拓扑，离线匹配原资产及display hash；若需要结束SLM owner，按原接口全量释放、优先恢复CCD，再在无SLM窗口时probe/rebind。维护前校验state_version及图案元数据，后续逐步expected_version守卫。
+- 新建20261020独立证据目录，旧证据保留；最终检查认证/18工具、两SLM窗口健康及CCD一张64×64软件ROI新帧，曝光/增益/AE保持本轮原值。网关可响应时不结束HTTP进程。
+- 初检state_version501：SLM1 connected，SLM2 error='Projection window closed, moved or hung'；当前窗口检查alive/unobscured且无挂起、当前三个Win32显示接口齐全，无requires_rebind字段。源码核验显示周期健康检查曾失败会保留error状态，后续窗口健康不会自动清除；此次不直接沿用昨日拓扑故障诊断。
+- 当前CCD缓存streaming/8000µs/gain100/AE0；维护脚本将再次实时读回。SLM2图案已变化，离线匹配最新联合加载原资产并校验display SHA2ba0c359…ae6f0c，SLM1保持6f6ef85a…71bd9d。证据runtime/maintenance_20261020_009aacd4/recovery/before.json及matched_current_patterns.json；现在按用户重新绑定要求释放owner、重新probe及加载两路原图。
+
+### 2026-10-20 重新绑定结果
+
+- recover.py退出0、status=recovered；新probe绑定SLM1 x4992/index2、SLM2 x3072/index1，两屏connected/无遮挡。display SHA分别6f6ef85a…71bd9d及2ba0c359…ae6f0c，与本轮维护前相同，图案/偏移/光栅保留。
+- CCD实时读回8000µs/gain100/AE0，重连后身份/尺寸/位深及设置相同，streaming；HTTP网关PID20384及端点不变。完整证据runtime/maintenance_20261020_009aacd4/recovery/recovery.json。
+- 独立执行check_health.py退出0、healthy=true、18工具、两SLM窗口健康；实际取得64×64软件ROI新帧5d252a9c-a599-466d-86bd-2d6b5dfd0807，CCD采图前后设置一致。报告runtime/health_check_20261020_b0b1fe40/health.json。
+- 更新核心文档与运行说明，未改业务源码，采用本轮原生MCP/SDK/hash/设置与新帧证据验证。下一步核验文档链接、凭据排除及Git差异，再同步维护记录；不重复无关软件测试，不声称已确定历史窗口异常触发事件。
+- 文档核验通过：10份Markdown、11个本地链接无缺失，跟踪文件中不含私有令牌，git diff --check通过。仅提交维护文档至原授权仓库；运行证据/私有配置保持忽略，SSH443使用既有主机密钥验证且不修改全局配置。

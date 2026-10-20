@@ -2,7 +2,7 @@
 
 ## 当前本机配置
 
-2026-10-19最新维护：两SLM重新探测绑定后connected（SLM1 x4992、SLM2 x3072），CCD按既有许可短暂重连后为streaming、64000µs/gain100/AE0，64×64软件ROI新帧实采通过。SLM1当前500×500/8bit/居中offset0,0，SLM2当前800×800/8bit/居中offset10,61，两路附加光栅0。图片内容已变化，从本轮实时hash匹配联合操作中的原资产，恢复前后display hash一致；修改前确认state_version与快照相同。旧8000/16000µs、旧图、fx=-0.5和10月14日首组均为历史状态。恢复记录在runtime/maintenance_20261019_769b242a/recovery/recovery.json。
+2026-10-20最新维护：两SLM重新探测绑定后connected（SLM1 x4992、SLM2 x3072），CCD按既有许可短暂重连后streaming、8000µs/gain100/AE0，64×64软件ROI新帧实采通过。SLM1当前500×500/8bit/居中offset0,0，SLM2当前800×800/8bit/居中offset10,61，两路附加光栅0；SLM2图片已更新，按本轮实时hash匹配原资产，恢复前后display hash相同。修改前确认state_version与快照一致；不要套用之前64000µs/旧图。此次为SLM2窗口异常锁存，无requires_rebind字段，应按实际错误诊断。恢复记录runtime/maintenance_20261020_009aacd4/recovery/recovery.json。
 
 项目：`D:/ExpSoftware/slm-ccd-mcp`。两块HDSLM80RPS / UPL0080 / 1920×1200按桌面矩形和完整显示接口身份匹配。10月14日第一轮位置映射被用户反馈可能反向后，沿用对调后的SLM1(4992,0)、SLM2(3072,0)；相同SN不能独立证明实体角色。当天FIRST_SIX第1组满屏GRAY8/RGB10及用户用ToupView定位为历史实验记录。CCD型号IUA24500KMA、单色YYYY RAW、12bit、5312×4592；SLM2通用小图相对居中默认偏移 **(+10,+61)**。
 
