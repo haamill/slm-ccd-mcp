@@ -1,112 +1,151 @@
 # SLM / CCD MCP
 
-在连接实验设备的Windows电脑上运行MCP服务，让另一台局域网电脑的Codex / Claude客户端控制SLM图案、位置和光栅，以及CCD曝光与RAW采集。
+用于在局域网内通过 MCP（Model Context Protocol）远程控制实验电脑上的 SLM 与 CCD。  
+项目支持模拟模式（无硬件）与硬件模式（Windows + 厂商 SDK）。
 
-项目仓库：[haamill/slm-ccd-mcp](https://github.com/haamill/slm-ccd-mcp)。本机工作目录为 `D:/ExpSoftware/slm-ccd-mcp`。
+## 功能概览
 
-## 当前状态
+- 基于 Streamable HTTP 的 MCP 服务（`/mcp`）
+- SLM 图像上传、加载、偏移、光栅、恢复图
+- CCD 参数读写与 RAW 采集（含预览与下载）
+- 联合操作 `lab_load_and_capture`（一次请求内串行加载并采图）
+- 操作去重（`operation_id`）与结果恢复（`operation_get`）
+- 令牌认证 + Host/Origin 校验 + 受限文件访问
 
-**2026-10-24恢复完成：用户手动启动网关后，两SLM已重新绑定并加载原图，均connected、窗口健康；CCD streaming、2000µs/增益100/AE关闭，实时读回及64×64软件ROI新帧实采通过。认证和18工具正常，端点仍为`http://10.195.186.75:8765/mcp`。请保持启动终端打开。**
+## 工作方式（简述）
 
-本轮恢复最后一次完整实验记录：SLM1为500×500/8bit/居中offset(0,0)，SLM2为800×800/8bit/居中offset(+10,+61)，附加光栅0。两屏实际SDK提交hash与该记录相同；CCD参数已在新连接后实时读回。恢复与最终验证证据分别为`runtime/maintenance_20261024_bb40f0a3/recovery/cold_recovery.json`和`runtime/health_check_20261024_05e8fb26/health.json`。旧服务进程已退出且原因未明，本次为新进程恢复，不声称原采集流持续无中断。
+1. 客户端通过 HTTP 调用 MCP 工具。  
+2. 控制层统一串行执行设备修改与采集。  
+3. SLM 与 CCD 数据写入 `runtime/`（不建议提交）。  
+4. RAW 文件通过带认证的下载端点获取。
 
-**2026-10-14：服务代码与审查修复已完成，83项测试通过、2项Windows文件symlink权限跳过；真实CCD暗帧通过。按用户文档的第一组已完成双SLM满屏加载并保留显示，用户正在用CCD手动定位。**
+## 系统要求
 
-- 官方MCP2.3.0，18个工具、3类资源、Bearer认证与Host/Origin校验。
-- 支持图片分块上传、8bit/native10、精确拼板、相位载波/LUT、独立振幅光栅。
-- CCD支持曝光/增益/AE读回、RAW新帧、软件ROI、inline预览与认证下载。
-- 控制串行、联合加载采图、state_version、请求去重和partial结果保存。
-- 真CCD采集5312×4592、12bit RAW，曝光2000µs读回、认证下载SHA256及原设置恢复通过；激光关闭，预览接近黑色。
-- 第1组WORKING_STRAIGHT + DECODE_Qp0已实际SDK提交。用户指出历史角色映射可能反向后已对调重新加载，8/10bit、panel位置/窗口健康及输入hash一致；实体对应和光学亮点待用户手动观察确认。另一台电脑连通待验收。
-
-## 设备与当前绑定
-
-| 角色 | 当前信息 |
-|---|---|
-| SLM1 | 桌面(4992,0)，HDSLM80RPS / UPL0080，面板1920×1200；当前500×500/8bit、居中offset0,0 |
-| SLM2 | 桌面(3072,0)，HDSLM80RPS / UPL0080，面板1920×1200；当前800×800/8bit、附加光栅0 |
-| SLM2偏移 | **(+10,+61)**，相对居中；当前800×800小图左上角(570,261) |
-| CCD | IUA24500KMA，单色YYYY RAW，12有效位，5312×4592；streaming，实时2000µs/gain100/AE关闭 |
-| 局域网地址 | WLAN 10.195.186.75；正式端点已监听 http://10.195.186.75:8765/mcp |
-
-10月14日首组为历史阶段：当时两图完整面板、offset0、无额外软件光栅/透镜，CCD由用户手动定位；现已被上表的新实验图案替代。首次/对调证据分别在`runtime/document_pair_20261014/`和`runtime/document_pair_swapped_20261014/`，不进入Git；相同SN不能证明实体模式，桌面绑定沿用用户反馈后的对应关系，光学效果仍须观察验证。
-
-SDK直接引用 `D:/ExpSoftware/HDSLM_SDK` 和 `D:/ExpSoftware/toupcamsdk.20260908`，不修改或复制厂家DLL。旧偏移(+10,+69)仅作历史追溯。IP和插拔变化后须重新核验绑定。
+- Python 3.12+
+- 依赖：见 `pyproject.toml` 与 `requirements.lock.txt`
+- 硬件模式额外要求：
+  - Windows x64
+  - 已安装 HDSLM / ToupCam SDK
+  - 运行于交互式桌面会话（SLM 窗口需要消息泵）
 
 ## 安装
 
-```powershell
-Set-Location -LiteralPath 'D:\ExpSoftware\slm-ccd-mcp'
-& 'D:\Program Files\Python312\python.exe' -m venv .venv
-& '.venv\Scripts\python.exe' -m pip install -r requirements.lock.txt
-& '.venv\Scripts\python.exe' -m pip install -e .
+```bash
+python -m venv .venv
+. .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+pip install -r requirements.lock.txt
+pip install -e .
 ```
 
-本机venv已安装。详见[运行说明](docs/operations.md)。
+开发测试可额外安装：
+
+```bash
+pip install -e ".[dev]"
+```
+
+## 配置
+
+- 模拟模式：`config/simulation.toml`
+- 硬件示例：`config/hardware.example.toml`（复制为你自己的本地配置）
+- 客户端模板：`client_examples/`
+
+令牌通过环境变量提供（默认 `LAB_MCP_TOKEN`）：
+
+```bash
+python -m lab_mcp init-token --output config/local.token
+```
+
+然后将 token 注入服务与客户端进程环境。
 
 ## 启动
 
-首次生成令牌（本机已有，命令不覆盖已有文件）：
+### 模拟模式
 
-```powershell
-& '.venv\Scripts\python.exe' -m lab_mcp init-token --output config/local.token
+```bash
+python -m lab_mcp serve --config config/simulation.toml --mode simulate
 ```
 
-真实网关使用本机私有配置：
+### 硬件模式
 
-```powershell
-& '.\scripts\start-lab-mcp.ps1' -ConfigPath config/local.toml
+```bash
+python -m lab_mcp serve --config config/local.toml --mode hardware
 ```
 
-启动网关不会立即连接硬件；远端调用lab_connect才打开设备。Windows需保持交互式桌面会话，服务进程持续处理投屏窗口消息。ToupView/MagicHolo占用或遮挡时先由用户处理，服务不自动关闭其他程序。
-
-模拟服务：
+PowerShell 也可使用启动脚本：
 
 ```powershell
-& '.\scripts\start-lab-mcp.ps1' -ConfigPath config/simulation.toml -Mode simulate
+.\scripts\start-lab-mcp.ps1 -ConfigPath config/local.toml
 ```
 
-停止本项目owner后探测：
+## 设备探测与绑定
 
-```powershell
-& '.venv\Scripts\python.exe' -m lab_mcp probe --config config/hardware.example.toml
+硬件模式建议先探测：
+
+```bash
+python -m lab_mcp probe --config config/local.toml
 ```
 
-## 另一台电脑连接
+结果写入 `runtime/probe.json`。  
+当设备型号/序列号不唯一时，应结合显示位置、面板尺寸和角色约束完成绑定。
 
-- [Codex配置模板](client_examples/codex.config.toml)：使用HTTP URL和LAB_MCP_TOKEN环境变量。
-- [Claude Desktop模板](client_examples/claude.desktop.json)：使用固定版本mcp-remote桥接，LAB_MCP_AUTH_HEADER由客户端进程环境提供。
-- [运行说明](docs/operations.md)包含具体配置、私网防火墙脚本和调用顺序。
-- [验收步骤](docs/acceptance.md)区分模拟、本机TCP、现场硬件和跨电脑证据。
+## MCP 客户端连接示例
 
-本机令牌在config/local.token，不进入Git；将相同令牌安全配置到客户端。网络profile、防火墙及校园WLAN客户端隔离需在另一台电脑实际核验。
+- Codex：`client_examples/codex.config.toml`
+- Claude Desktop（mcp-remote）：`client_examples/claude.desktop.json`
 
-## 常用工具
+请将示例中的 URL、主机名与认证头替换为你自己的环境值。
 
-| 目的 | 工具 |
-|---|---|
-| 状态/连接 | lab_status、lab_connect、lab_disconnect |
-| 图片 | asset_upload_begin/chunk/finish、asset_list、slm_load_image |
-| 位置/载波 | slm_set_offset、slm_set_grating |
-| 振幅光栅/均匀码/恢复 | slm_make_amplitude_grating、slm_show_uniform、slm_restore |
-| 相机 | ccd_get_settings、ccd_set_settings、ccd_capture |
-| 联合操作/结果恢复 | lab_load_and_capture、operation_get |
+## 工具列表（18）
 
-SLM图片保持原尺寸/码值；full panel不重复偏移，附加光栅每次从原图重算。相位码域与LUT合成分开，振幅图不按相位取模相加。RAW保存不受预览亮度映射影响。
+- 状态与连接：`lab_status` `lab_connect` `lab_disconnect`
+- 资产：`asset_list` `asset_upload_begin` `asset_upload_chunk` `asset_upload_finish`
+- SLM：`slm_load_image` `slm_set_offset` `slm_set_grating` `slm_make_amplitude_grating` `slm_show_uniform` `slm_restore`
+- CCD：`ccd_get_settings` `ccd_set_settings` `ccd_capture`
+- 联合与恢复：`lab_load_and_capture` `operation_get`
 
-## 数据与目录
+## 项目结构
 
 ```text
 slm-ccd-mcp/
-├── AGENTS.md / README.md / LOG.md / REPORT.md
-├── pyproject.toml / requirements.lock.txt
-├── src/lab_mcp/       # 图像、存储、设备、协调、MCP、CLI
-├── tests/            # 纯数组、SDK fake、事务、真实MCP Client
-├── config/           # 可提交示例 + 不提交的本机绑定/令牌
-├── client_examples/  # 另一台电脑的客户端模板
-├── scripts/          # 启动及显式Private防火墙配置
-├── docs/             # 设计、计划、运行和验收
-└── runtime/          # 不提交：探测、操作SQLite、assets、RAW/PNG/manifest
+├── src/lab_mcp/          # 核心实现（设备、控制、存储、MCP 服务、CLI）
+├── tests/                # 测试
+├── config/               # 配置示例
+├── client_examples/      # 客户端配置模板
+├── scripts/              # PowerShell 辅助脚本
+├── docs/                 # 通用运行与验收文档
+├── pyproject.toml
+└── requirements.lock.txt
 ```
 
-运行失败保留partial证据，不自动删除RAW。输入、凭据和本机配置由.gitignore排除。SDK hash与窗口状态是软件证据，真实光学效果仍须开激光后实拍核验。
+## 测试与验证
+
+```bash
+pytest -q
+```
+
+也可运行 CLI 冒烟：
+
+```bash
+python -m lab_mcp smoke --url http://127.0.0.1:8765/mcp
+```
+
+> 硬件冒烟需要显式提供 `--allow-hardware --image --exposure-us`。
+
+## 硬件集成注意事项
+
+- SLM 调用与窗口消息泵由同一 owner 线程管理。
+- HDSLM 枚举在 owner 生命周期内受约束，显示拓扑变化后应重新探测绑定。
+- 仅允许配置白名单目录（`input_roots`）中的输入文件。
+- 服务不对光学效果做自动保证，实际效果需实验侧独立验证。
+
+## 安全与限制
+
+- 必须携带有效访问凭证
+- 启用 Host/Origin 校验，避免跨源滥用。
+- 不提供任意 shell 执行或任意路径文件访问。
+- `runtime/` 可能包含采集结果与运行记录，默认应视为本地运行数据。
+
+## 贡献与许可证
+
+- 欢迎通过 Issue / Pull Request 反馈问题与改进建议。
+- 当前仓库未包含 `LICENSE` 文件；在复用前请先确认授权方式。

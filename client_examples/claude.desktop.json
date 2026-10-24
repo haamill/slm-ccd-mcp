@@ -5,7 +5,7 @@
       "args": [
         "-y",
         "mcp-remote@0.14.3",
-        "http://10.195.186.75:8765/mcp",
+        "http://<LAB_HOST>:8765/mcp",
         "--allow-http",
         "--header",
         "Authorization:${LAB_MCP_AUTH_HEADER}"
