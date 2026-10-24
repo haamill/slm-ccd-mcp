@@ -44,8 +44,8 @@ class LabConfig(Model):
     token_env: str = 'LAB_MCP_TOKEN'
     runtime_dir: Path = Path('runtime')
     input_roots: list[Path] = [Path('assets')]
-    slm_sdk_dir: Path = Path('D:/ExpSoftware/HDSLM_SDK/Samples/HDSLM_python_api_demo')
-    camera_sdk_root: Path = Path('D:/ExpSoftware/toupcamsdk.20260908')
+    slm_sdk_dir: Path = Path('C:/path/to/HDSLM_SDK/Samples/HDSLM_python_api_demo')
+    camera_sdk_root: Path = Path('C:/path/to/toupcamsdk')
     slms: dict[SLMRole, SLMConfig] = Field(default_factory=lambda: {
         'slm1': SLMConfig(enabled=False, bit_depth=8, offset_xy=(0, 0)), 'slm2': SLMConfig()})
     camera: CameraConfig = Field(default_factory=CameraConfig)

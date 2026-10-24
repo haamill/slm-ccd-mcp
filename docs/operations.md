@@ -1,104 +1,84 @@
-# 安装、启动与客户端连接
+# 运行与连接指南
 
-## 当前本机配置
+本文档给出通用运行流程，不包含任何特定实验环境参数。
 
-2026-10-24恢复完成：用户手动启动新网关PID26024后，两SLM已重新绑定（SLM1 x4992/index2、SLM2 x3072/index1）并加载最后完整实验图案，500×500/800×800、8bit、居中offset0,0/10,61、附加光栅0，SDK提交hash与记录相同。CCD streaming，实时读回2000µs/gain100/AE0；认证/18工具和64×64软件ROI新帧实采通过。请保持启动终端打开。恢复与验收证据runtime/maintenance_20261024_bb40f0a3/recovery/cold_recovery.json、runtime/health_check_20261024_05e8fb26/health.json。
+## 1) 安装
 
-项目：`D:/ExpSoftware/slm-ccd-mcp`。两块HDSLM80RPS / UPL0080 / 1920×1200按桌面矩形和完整显示接口身份匹配。10月14日第一轮位置映射被用户反馈可能反向后，沿用对调后的SLM1(4992,0)、SLM2(3072,0)；相同SN不能独立证明实体角色。当天FIRST_SIX第1组满屏GRAY8/RGB10及用户用ToupView定位为历史实验记录。CCD型号IUA24500KMA、单色YYYY RAW、12bit、5312×4592；SLM2通用小图相对居中默认偏移 **(+10,+61)**。
-
-WLAN地址：`10.195.186.75`。本机私有绑定配置在 `config/local.toml`，令牌在 `config/local.token`；二者不受Git跟踪。当前网关、双SLM和CCD流已恢复，IP或插拔变化后重新核验配置；跨电脑真实连接仍需要在另一台电脑验收。
-
-## 安装
-
-PowerShell中：
-
-```powershell
-Set-Location -LiteralPath 'D:\ExpSoftware\slm-ccd-mcp'
-& 'D:\Program Files\Python312\python.exe' -m venv .venv
-& '.venv\Scripts\python.exe' -m pip install -r requirements.lock.txt
-& '.venv\Scripts\python.exe' -m pip install -e .
+```bash
+python -m venv .venv
+. .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+pip install -r requirements.lock.txt
+pip install -e .
 ```
 
-本机已经建立venv。SDK直接使用配置的本机目录；无需安装厂家GUI作为MCP依赖，也不把DLL复制进仓库。
+## 2) 生成访问令牌
 
-## 令牌与启动
-
-首次生成私有令牌（已有文件时命令拒绝覆盖）：
-
-```powershell
-& '.venv\Scripts\python.exe' -m lab_mcp init-token --output config/local.token
+```bash
+python -m lab_mcp init-token --output config/local.token
 ```
 
-真实设备服务：
+将 token 注入服务端与客户端进程环境（默认环境变量名：`LAB_MCP_TOKEN`）。
 
-```powershell
-& '.\scripts\start-lab-mcp.ps1' -ConfigPath config/local.toml
+## 3) 启动服务
+
+### 模拟模式
+
+```bash
+python -m lab_mcp serve --config config/simulation.toml --mode simulate
 ```
 
-启动网关不会立即打开SLM或CCD。远端明确调用 `lab_connect` 才连接设备。保持服务进程与Windows桌面会话运行；SLM窗口需要该进程持续处理消息。Ctrl+C正常结束会尝试恢复注册图案、相机原设置并关闭本进程投屏窗口；不能保证窗口关闭后面板继续显示本进程图案。
+### 硬件模式
 
-本机模拟服务：
-
-```powershell
-& '.\scripts\start-lab-mcp.ps1' -ConfigPath config/simulation.toml -Mode simulate
+```bash
+python -m lab_mcp serve --config config/local.toml --mode hardware
 ```
 
-## 探测与绑定
-
-停止本项目owner后运行：
+Windows 也可用辅助脚本：
 
 ```powershell
-& '.venv\Scripts\python.exe' -m lab_mcp probe --config config/hardware.example.toml
+.\scripts\start-lab-mcp.ps1 -ConfigPath config/local.toml
 ```
 
-结果保存在 `runtime/probe.json`。探测只枚举，不打开投屏或CCD。不要把Windows标签0/1当SDK index；SN可能重复，需要同时设置serial、desktop_xy与panel_wh。接入SLM1时关闭owner，重新探测并明确两个角色；不要沿用旧屏幕编号。
+## 4) 硬件探测与绑定
 
-ToupView可能占用相机，MagicHolo可能与SDK窗口重叠。MCP会报告占用 / 遮挡，不自动关闭其他应用。SDK状态与图像hash是软件证据，光学有效性仍须CCD实拍核验。
+```bash
+python -m lab_mcp probe --config config/local.toml
+```
 
-## 另一台电脑：Codex
+- 输出写入 `runtime/probe.json`
+- 探测用于绑定核对，不会自动完成角色映射
+- 当设备 SN/型号重复时，需结合桌面位置与分辨率确认角色
 
-将 [客户端配置](../client_examples/codex.config.toml) 合并到另一台电脑的Codex配置中。令牌通过 `LAB_MCP_TOKEN` 环境变量提供，须让Codex进程继承该变量；在桌面应用已启动后改终端变量不会改变已有进程环境。
+## 5) MCP 客户端配置
 
-本机已核验CLI语法，对另一台电脑可使用：
+- Codex 示例：`client_examples/codex.config.toml`
+- Claude Desktop 示例：`client_examples/claude.desktop.json`
+
+请替换示例中的 URL 与认证相关占位符。
+
+## 6) 推荐调用顺序
+
+1. `lab_status`：读取当前状态
+2. `lab_connect`：连接所需角色
+3. `asset_upload_*` + `slm_load_image`：上传并加载图案
+4. `slm_set_offset` / `slm_set_grating`：调整位置与载波
+5. `ccd_get_settings` / `ccd_set_settings`：设置并读回相机参数
+6. `ccd_capture` 或 `lab_load_and_capture`：采集并获取下载引用
+7. `operation_get`：用于恢复可能丢失的操作响应
+
+## 7) 网络与安全
+
+- 服务与下载端点都需要有效访问凭证
+- 启用 Host/Origin 校验
+- 输入文件受 `input_roots` 白名单约束
+- 如需防火墙规则，可使用：
 
 ```powershell
-codex mcp add slm_ccd_lab --url http://10.195.186.75:8765/mcp --bearer-token-env-var LAB_MCP_TOKEN
+.\scripts\setup-lan-firewall.ps1 -LocalIp <SERVER_IP> -RemoteAddress <CLIENT_IP>
 ```
 
-配置中将tool_timeout_sec设为180，以覆盖默认120秒采图上限。相关参数依据 [OpenAI官方MCP文档](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)。本项目没有替用户修改任何已有Codex配置。
+## 8) 运行数据
 
-## 另一台电脑：Claude Desktop / Claude Code
-
-Claude Desktop使用 [stdio桥接模板](../client_examples/claude.desktop.json)，需要客户端电脑可用的Node / npx。模板固定 `mcp-remote@0.14.3`；在Claude进程环境设置 `LAB_MCP_AUTH_HEADER`，其内容为 `Bearer ` 加本机令牌，再重新启动Claude。
-
-模板参数 `Authorization:${LAB_MCP_AUTH_HEADER}` 避免Windows npx参数中空格拆分；`--allow-http` 用于此局域网HTTP端点。这些行为依据 [桥接工具维护者文档](https://github.com/punkpeye/mcp-remote)。也可使用该工具的header-file方式保存客户端私有认证头。
-
-Claude Code支持原生HTTP MCP配置，按 [Anthropic官方文档](https://code.claude.com/docs/en/mcp) 为同一端点设置Authorization请求头。客户端具体版本、桥接包启动和网络可达性需要另一台电脑验证；本机未安装或修改它的客户端。
-
-## 网络与防火墙
-
-实验服务只绑定配置的私网接口。MCP与RAW下载都需要令牌。若另一台电脑无法连接，先检查IP、同网可达性和端口，再检查Windows网络profile / 防火墙。当前ZJUWLAN为Public；以下脚本仅配置Private规则，因此不能直接保证这个校园网络可连接。若保持Public，需由用户/管理员按客户端IP配置同等受限Public规则；本轮没有修改网络分类或开放防火墙。
-
-管理员PowerShell可以显式为客户端IP添加受限Private规则：
-
-```powershell
-& '.\scripts\setup-lan-firewall.ps1' -LocalIp 10.195.186.75 -RemoteAddress '<客户端IP>'
-```
-
-脚本不会自动执行，也不修改网络profile或开放公网。校园WLAN可能启用客户端隔离；服务代码不能绕过网络设备的隔离策略。
-
-## 调用顺序
-
-1. `lab_status` 查看mode、角色连接、图案与state_version。
-2. `lab_connect` 连接指定角色；SLM1缺席可只传slm2、ccd。
-3. 上传NPY / PNG / BMP，或使用配置allowlist中的本机路径；`slm_load_image` 对8/10bit与panel/centered明确声明。
-4. `slm_set_offset` 设置小图相对居中位置；`slm_set_grating` 设置绝对载波cycle/pixel，加载新图默认附加载波为0。
-5. `ccd_get_settings` / `ccd_set_settings` 读回或设置微秒曝光、SDK增益和AE。
-6. `ccd_capture` 或 `lab_load_and_capture` 获取新RAW、inline预览和认证下载引用。
-7. 对修改请求提供UUID operation_id；丢失响应后用 `operation_get` 查询或以同ID重发，不猜测重做。
-
-SLM1只支持加载8bit振幅图和生成独立振幅光栅，不对已有振幅全息图猜测相位取模叠加。
-
-## 数据与关闭
-
-RAW位于 `runtime/captures/<capture_id>/raw_NNN.npy`，预览为preview.png，manifest记录配置、帧身份、丢帧和hash。SQLite保存规范化命令/参数、各阶段开始/完成和结果；既有旧记录缺失字段保留为空，不能推测补全。失败保留partial，预览不改变RAW。持久化失败返回uncertain及operation_id，同进程查询也可取回内存结果，重启保留running/intent为uncertain，不自动重放。`lab_disconnect`释放设备；它不会结束MCP网关。
+- 采集结果默认在 `runtime/captures/<capture_id>/`
+- 运行过程中会写入操作与元数据记录
+- 建议将 `runtime/` 视为本地运行数据，不纳入版本控制

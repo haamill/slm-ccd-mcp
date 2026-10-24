@@ -5,8 +5,8 @@ port = 8765
 public_base_url = "http://127.0.0.1:8765"
 runtime_dir = "runtime"
 input_roots = ["assets"]
-slm_sdk_dir = "D:/ExpSoftware/HDSLM_SDK/Samples/HDSLM_python_api_demo"
-camera_sdk_root = "D:/ExpSoftware/toupcamsdk.20260908"
+slm_sdk_dir = "C:/path/to/HDSLM_SDK/Samples/HDSLM_python_api_demo"
+camera_sdk_root = "C:/path/to/toupcamsdk"
 
 [slms.slm1]
 enabled = false
