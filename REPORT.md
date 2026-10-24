@@ -4,7 +4,7 @@
 
 本项目在连接 SLM 和 CCD 的 Windows 实验电脑上提供 MCP 服务，让另一台局域网电脑通过本地 Codex / Claude 等 MCP 客户端调用实验操作。用户常用操作为 SLM 图片加载位置、附加光栅与一级衍射位置调整，以及 CCD 曝光等相机参数。
 
-2026-10-13 用户确认首版范围、SLM2相对居中偏移 **(+10,+61)**，并批准设计与实施计划；服务实现、审查修复与83项软件测试已完成，代码已发布至用户指定仓库。2026-10-20最新维护重新绑定两SLM，同一MCP端点18工具可用，CCD8000µs/gain100/AE0且64×64软件ROI新帧实采通过。后文按阶段保留设计、实现和现场记录，当前状态以最新维护章节为准。
+2026-10-13 用户确认首版范围、SLM2相对居中偏移 **(+10,+61)**，并批准设计与实施计划；服务实现、审查修复与83项软件测试已完成，代码已发布至用户指定仓库。2026-10-24原服务退出后，用户手动启动新网关；现已恢复两SLM和最后完整实验图案，CCD实时2000µs/gain100/AE0，认证/18工具、窗口健康与64×64软件ROI新帧实采通过。后文按阶段保留记录，当前状态以最新维护结果为准。
 
 ## 2. 已完成的调查与依据
 
@@ -228,3 +228,19 @@ CCD新流恢复streaming，同一camera_id、5312×4592、12有效位；实时�
 离线匹配本轮实时原图：SLM1 asset197c4029…/500×500/8bit/居中offset0,0，SLM2已更新为asset9c11eaa7…/800×800/8bit/居中offset10,61，两路附加光栅0。以expected_version及维护前图案元数据守卫，按既有授权全量释放设备owner，优先恢复CCD本轮实际8000µs/gain100/AE0，在无投屏窗口时probe，然后重新绑定SLM1 x4992/index2、SLM2 x3072/index1并重载原图。网关PID20384与端点未变，CCD有已许可的短暂重连；没有修改业务源码或绕过安全检查。
 
 两屏最终connected且窗口健康，display SHA分别6f6ef85a98119206b8549401ec335283e3e9c87f37189f3a505361da9471bd9d与2ba0c359a311cbb763520a937fec70955d5b8c09d2e982105a3d5de09fae6f0c，与维护前相同；CCD原身份、尺寸、位深及实时设置保持，streaming。独立最终检查healthy=true、认证/18工具通过，64×64软件ROI新帧capture_id=5d252a9c-a599-466d-86bd-2d6b5dfd0807，采图前后设置相同。恢复证据runtime/maintenance_20261020_009aacd4/recovery/recovery.json，最终检查runtime/health_check_20261020_b0b1fe40/health.json；软件与新帧链路通过不等同于跨电脑网络或光学成像验收。
+
+## 18. 2026-10-24服务退出后的预检与恢复
+
+本轮MCP快照连接失败，系统检查无8765监听、无Python/ToupView/MagicHolo进程，WLAN仍为原地址，系统未重启。原服务已退出，原因暂无证据；没有可读的实时SLM或CCD快照。此次不将旧窗口或拓扑错误当作已确认根因，也不将历史曝光直接当当前读回。
+
+只读数据库最新操作2f4b3f83-1dc5-47a8-83d1-a96bdffd2249为成功联合采集，最终state_version968、capture_id432e4e4f-e87f-4689-b95b-5bcb882565de。其metadata.state_before保存两SLM最后数组与相机身份/设置，metadata.settings与相机快照一致。因此用该最后完整持久化状态作为明确记录来源，重建SLM1 assetcab370c9…/500×500/8bit/居中offset0,0，SLM2 asset3559354c…/800×800/8bit/居中offset10,61，附加光栅0。离线display SHA分别d52c3fa4bc0f5d31383e5b4442c6923e589280d54c4208da74dbab408c98ba3f和46248344c89add9e4121433fc2ad6ad1ed3047c85802e48616f472613ddd7120，逐一与最后记录相同；CCD目标为最后实采2000µs/gain100/AE0。
+
+确认无投屏进程时probe成功匹配SLM1 x4992/index2与SLM2 x3072/index1。cold_plan.json记录来源、拓扑、绑定、原资产、数组hash与相机目标。cold_restore.py准备通过新网关执行恢复：只接受fresh state_version0及全设备disconnected，先连接CCD并核身份/尺寸/位深、记录重新打开时真实设置，再恢复记录参数、连接并加载两SLM；每步使用expected_version，最后核hash、窗口及相机读回。不会重放旧扫描或多帧采集请求。
+
+启动后台服务的两次命令均被自动审批以blocked by policy拒绝，未提供具体原因。没有成功执行Start-Process，没有投屏或连接相机；已停止换启动方式尝试并请用户在本机运行已有scripts/start-lab-mcp.ps1，保持窗口打开。待服务启动后继续cold_restore.py及独立64×64新帧健康验证。本节仅记录预检与待执行方案，不能标记设备已恢复或测试已通过。
+
+### 18.1 用户启动后恢复与最终验收
+
+用户在本机运行启动脚本后明确要求继续绑定。新网关PID26024在同地址8765监听，cold_restore.py实测新state_version0、三设备disconnected，随后逐步expected_version执行CCD连接、原身份/5312×4592/12bit核验、记录参数恢复、两SLM连接及原图加载。每步succeeded，脚本退出0、status=recovered；两屏最终connected、窗口存活/无遮挡/不挂起、无requires_rebind，显示数组SHA与上述最后持久化快照完全相同。恢复的是明确记录的最后实验状态，不能描述为旧流无中断或恢复前实时快照。
+
+CCD重开后的真实读回已记录，最终AE0/2000µs/gain100与目标相同、streaming。独立check_health.py再次通过：无令牌HTTP401、认证MCP列18工具、周期窗口健康有效；实际采到一张64×64软件ROI新RAW帧，capture_id=b4c73e94-50e2-4728-a8bb-73ff238b79d2，采图前后设置一致，healthy=true，退出0。证据runtime/maintenance_20261024_bb40f0a3/recovery/cold_recovery.json与runtime/health_check_20261024_05e8fb26/health.json。没有修改业务源码、网络配置或令牌，也未重放此前扫描。当前用户启动窗口需要保留；旧进程退出原因、另一台电脑网络及光学效果仍不超出证据作结论。

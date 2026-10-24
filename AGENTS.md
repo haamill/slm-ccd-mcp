@@ -2,8 +2,8 @@
 
 ## 目标与用户确认
 
-- 2026-10-20最新绑定：SLM2原有投屏窗口异常锁存、SLM1 connected，无requires_rebind字段；重新probe/建立owner后两屏connected且窗口健康。沿用用户许可短暂重连CCD，HTTP网关PID20384及端点不变。SLM1(4992,0)/index2、SLM2(3072,0)/index1。CCD streaming、8000µs、gain100、AE0，与本轮维护前实时值相同，64×64软件ROI新帧实采通过。历史异常触发事件仍未确定。
-- 当前图案：SLM1 asset197c4029…/500×500/8bit/centered offset0,0，display SHA6f6ef85a…71bd9d；SLM2 asset9c11eaa7…/800×800/8bit/centered offset10,61，display SHA2ba0c359…ae6f0c；两屏附加光栅0，恢复前后hash相同。之前64000µs及旧SLM2资产为历史状态。证据runtime/maintenance_20261020_009aacd4/recovery/recovery.json与runtime/health_check_20261020_b0b1fe40/health.json。
+- 2026-10-24最新状态：用户手动启动网关后已完成绑定和恢复，PID26024、端点10.195.186.75:8765/mcp；两SLM connected且窗口健康，SLM1(4992,0)/index2、SLM2(3072,0)/index1。CCD streaming，实时读回2000µs/gain100/AE0；认证、18工具及64×64软件ROI新帧实采通过。用户需保持启动终端打开。此前后台启动被拒绝的记录保留为历史，当前已解除等待。
+- 本轮从最后成功持久化快照2f4b3f83…2249/旧state_version968恢复原图：SLM1 assetcab370c9…/500×500/8bit/centered offset0,0，display SHAd52c3fa4…98ba3f；SLM2 asset3559354c…/800×800/8bit/centered offset10,61，display SHA46248344…dd7120；附加光栅0。新SDK提交hash与该记录一致，相机参数也已重新实时核验。证据runtime/maintenance_20261024_bb40f0a3/recovery/cold_recovery.json与runtime/health_check_20261024_05e8fb26/health.json。旧进程退出原因暂无证据，不能称已消除复发原因。
 - 项目位于 `D:/ExpSoftware/slm-ccd-mcp`，在连接实验设备的 Windows 电脑上运行。
 - 另一台局域网电脑通过 Codex / Claude 等本地 MCP 客户端操作实验。
 - 首版覆盖 SLM 图片加载、加载位置、光栅，以及 CCD 曝光、增益、采图与单步联合操作。

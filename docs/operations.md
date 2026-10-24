@@ -2,11 +2,11 @@
 
 ## 当前本机配置
 
-2026-10-20最新维护：两SLM重新探测绑定后connected（SLM1 x4992、SLM2 x3072），CCD按既有许可短暂重连后streaming、8000µs/gain100/AE0，64×64软件ROI新帧实采通过。SLM1当前500×500/8bit/居中offset0,0，SLM2当前800×800/8bit/居中offset10,61，两路附加光栅0；SLM2图片已更新，按本轮实时hash匹配原资产，恢复前后display hash相同。修改前确认state_version与快照一致；不要套用之前64000µs/旧图。此次为SLM2窗口异常锁存，无requires_rebind字段，应按实际错误诊断。恢复记录runtime/maintenance_20261020_009aacd4/recovery/recovery.json。
+2026-10-24恢复完成：用户手动启动新网关PID26024后，两SLM已重新绑定（SLM1 x4992/index2、SLM2 x3072/index1）并加载最后完整实验图案，500×500/800×800、8bit、居中offset0,0/10,61、附加光栅0，SDK提交hash与记录相同。CCD streaming，实时读回2000µs/gain100/AE0；认证/18工具和64×64软件ROI新帧实采通过。请保持启动终端打开。恢复与验收证据runtime/maintenance_20261024_bb40f0a3/recovery/cold_recovery.json、runtime/health_check_20261024_05e8fb26/health.json。
 
 项目：`D:/ExpSoftware/slm-ccd-mcp`。两块HDSLM80RPS / UPL0080 / 1920×1200按桌面矩形和完整显示接口身份匹配。10月14日第一轮位置映射被用户反馈可能反向后，沿用对调后的SLM1(4992,0)、SLM2(3072,0)；相同SN不能独立证明实体角色。当天FIRST_SIX第1组满屏GRAY8/RGB10及用户用ToupView定位为历史实验记录。CCD型号IUA24500KMA、单色YYYY RAW、12bit、5312×4592；SLM2通用小图相对居中默认偏移 **(+10,+61)**。
 
-WLAN地址：`10.195.186.75`。本机私有绑定配置在 `config/local.toml`，令牌在 `config/local.token`；二者不受Git跟踪。正式网关已启动，保持两SLM当前显示和CCD采集流。不要启动厂家程序抢占设备；IP或插拔变化后重新核验配置。跨电脑真实连接仍需要在另一台电脑验收。
+WLAN地址：`10.195.186.75`。本机私有绑定配置在 `config/local.toml`，令牌在 `config/local.token`；二者不受Git跟踪。当前网关、双SLM和CCD流已恢复，IP或插拔变化后重新核验配置；跨电脑真实连接仍需要在另一台电脑验收。
 
 ## 安装
 

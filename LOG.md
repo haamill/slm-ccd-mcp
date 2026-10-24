@@ -363,3 +363,29 @@
 - 独立执行check_health.py退出0、healthy=true、18工具、两SLM窗口健康；实际取得64×64软件ROI新帧5d252a9c-a599-466d-86bd-2d6b5dfd0807，CCD采图前后设置一致。报告runtime/health_check_20261020_b0b1fe40/health.json。
 - 更新核心文档与运行说明，未改业务源码，采用本轮原生MCP/SDK/hash/设置与新帧证据验证。下一步核验文档链接、凭据排除及Git差异，再同步维护记录；不重复无关软件测试，不声称已确定历史窗口异常触发事件。
 - 文档核验通过：10份Markdown、11个本地链接无缺失，跟踪文件中不含私有令牌，git diff --check通过。仅提交维护文档至原授权仓库；运行证据/私有配置保持忽略，SSH443使用既有主机密钥验证且不修改全局配置。
+
+### 2026-10-24 重新绑定运行前
+
+- 用户要求重新绑定两SLM。先读取实时设备状态和Win32拓扑，匹配本轮原资产并离线核验display hash；保留最新图案、位深、偏移、光栅及CCD实时参数，不套用旧快照。
+- 复用已验证的维护流程，创建20261024独立证据目录；保留原HTTP网关，必要时按已有明确许可短暂重连CCD。修改前校验state_version和last元数据，后续每步expected_version守卫；HDSLM probe仅在投屏窗口释放后执行。
+- 最终核验认证/18工具、两SLM窗口健康及CCD一张64×64软件ROI新帧，采图前后曝光/增益/AE应相同。本轮只做设备维护与文档记录，不改业务源码。
+- 初次实时快照连接失败，未执行硬件恢复；进一步检查无8765监听、无Python/ToupView/MagicHolo进程，WLAN仍10.195.186.75。原网关已退出，系统未重启，退出原因暂无证据。此次不能按旧owner错误处理，也没有维护前可读的实时相机状态。
+- 只读数据库最新操作2f4b3f83…2249为已完成联合采集，含metadata.state_before及相机真实采集设置。现在核验该最后持久化快照、匹配原资产和display hash，在无投屏进程时probe；若一致则启动同配置服务并恢复最后记录实验状态，明确区分记录恢复与实时状态保持。
+- 冷启动预检通过：最后已完成state_version968/采集432e4e4f…65de的双SLM和相机快照内部一致，原资产/离线display hash匹配；SLM1 assetcab370c9…/500×500/offset0,0，SLM2 asset3559354c…/800×800/offset10,61，均8bit/附加光栅0。相机最后实采2000µs/gain100/AE0。无投屏进程时HDSLM新probe匹配两屏x4992/index2、x3072/index1；cold_plan.json独立保存。
+- 现在启动同local.toml的隐藏网关进程，日志重定向至本轮目录；之后只允许fresh state_version0/全设备disconnected时恢复，逐步expected_version校验，CCD连接后先核身份/尺寸/位深及新读回，再恢复最后记录参数。不重放旧采集或扫描请求。
+- 两次后台启动均在执行前被自动审批拒绝，仅返回blocked by policy；第二次已使用直接venv Python启动，仍未获准。两次均无进程创建结果，未执行cold_restore.py，已停止其他启动方式尝试并通过异步问题请求用户在本机运行已有启动脚本。核心文档标记当前服务不可用/预检完成/待恢复，不沿用上次成功状态。
+- 离线检查通过：prepare_cold.py/cold_restore.py语法校验通过（没有执行恢复硬件调用）；10份Markdown/11个本地链接无缺失，跟踪文件中无私有令牌，git diff --check通过。记录保留本机，等待服务启动后继续，不将本轮预检称为新帧或设备验收通过。
+
+### 2026-10-24 用户启动后的继续绑定运行前
+
+- 用户已手动启动网关并明确要求继续绑定；当前10.195.186.75:8765监听PID26024。保留先前受阻和离线预检记录，不再次创建后台服务。
+- 现在运行已审阅cold_restore.py，先要求新服务state_version0及设备disconnected；经MCP连接相机并核身份/尺寸/位深，恢复最后完整实验记录的2000µs/gain100/AE0，再连接并重载两路已校验原图。修改逐步expected_version守卫。
+- 完成后独立check_health.py验证18工具、两SLM窗口和一张64×64软件ROI新帧。若服务已被其他客户端修改则停止旧计划、重新读取状态，不覆盖其新实验。
+
+### 2026-10-24 用户启动后的绑定与验证结果
+
+- cold_restore.py退出0、status=recovered；新服务从state_version0/disconnected开始，按最后完整持久化实验记录恢复两屏。SLM1/2 connected，窗口健康无requires_rebind，显示SHA分别d52c3fa4…98ba3f和46248344…dd7120，与原记录一致；两图尺寸/8bit/偏移0,0及10,61/附加光栅0保留。
+- CCD原身份/5312×4592/12bit核验通过，实际读回AE0/2000µs/gain100、streaming。新网关PID26024及原地址8765持续监听，不声称旧进程或旧流连续运行。完整操作和重新打开时CCD读回在runtime/maintenance_20261024_bb40f0a3/recovery/cold_recovery.json。
+- 独立check_health.py退出0、healthy=true：未认证401、认证18工具、两SLM窗口健康；取得64×64软件ROI新帧b4c73e94-50e2-4728-a8bb-73ff238b79d2，采图前后CCD设置一致。最终证据runtime/health_check_20261024_05e8fb26/health.json，之前受阻与离线预检记录保留。
+- 更新四份核心文档及运行说明至实际恢复结果，用户需保持启动窗口。接下来检查文档链接、凭据排除与Git差异，再同步维护记录；未改业务源码，以本轮真实MCP/SDK/hash/读回及新帧为验收，不重跑无关软件测试。
+- 文档核验通过：10份Markdown、11个本地链接无缺失，跟踪文件中不含私有令牌，git diff --check通过。仅提交维护文档，运行数据/私有配置保持排除；通过此前已验证GitHub SSH443路径同步，不改变全局SSH或代理配置。
